@@ -98,6 +98,10 @@
             <span id="bannerQuotaBadge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                 <i class="fa-solid fa-shield-halved mr-1"></i> Device Quota: <span id="bannerQuotaText" class="ml-1">0/10 Used</span>
             </span>
+            <!-- Demo Speed Badge -->
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                <i class="fa-solid fa-gauge-simple-high mr-1"></i> Speed: 0.5x Slow (Presentation Mode)
+            </span>
             <span class="text-slate-300 font-medium hidden md:inline">Page-by-Page Guided Testing & Verification</span>
         </div>
         <div class="flex items-center space-x-2">
@@ -1805,7 +1809,7 @@
             const toast = document.getElementById('toast');
             document.getElementById('toastMsg').innerText = msg;
             toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3500);
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 4500);
         };
         const showToast = window.showToast;
 
@@ -1835,34 +1839,36 @@
             }, 500);
         };
 
-        // ================= AUTOMATED USER DEMO MOCK RUNNER (Consumes 1 Demo Use) =================
+        // ================= AUTOMATED USER DEMO MOCK RUNNER (Consumes 1 Demo Use - 0.5x Speed) =================
         window.runAutomatedDemoMock = async () => {
             const allowed = window.consumeDeviceDemoQuota();
             if (!allowed) return;
 
-            const delay = (ms) => new Promise(res => setTimeout(res, ms));
+            // 0.5x Speed Multiplier: Each step takes 2.0x time for relaxed, clear presentation pacing
+            const speedMultiplier = 2.0;
+            const delay = (ms) => new Promise(res => setTimeout(res, ms * speedMultiplier));
             const btn = document.getElementById('btnAutoMock');
             const origText = btn.innerHTML;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Running Demo Mock...`;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Running Demo Mock (0.5x Slow)...`;
             btn.disabled = true;
 
-            showToast("🚀 Initiating User Demo Mock Walkthrough...");
-            await delay(1200);
+            showToast("🚀 Initiating User Demo Mock Walkthrough (0.5x Presentation Speed)...");
+            await delay(1500);
 
             // Step 1: Login as Student
             showToast("Step 1/7: Logging in as Student (Alex Morgan)...");
             processAuth('alex.morgan@university.edu', 'Alex Morgan', 'student', false, 'demo');
-            await delay(1500);
+            await delay(1800);
 
             // Step 2: Home Page Verification
             showToast("Step 2/7: Verifying Home Page Statistics & Ledger...");
             window.navigateTo('home');
-            await delay(1500);
+            await delay(1800);
 
             // Step 3: Lodge Lost Item Complaint
             showToast("Step 3/7: Lodging Lost Complaint (Noise-Cancelling Headphones)...");
             window.navigateTo('report-lost');
-            await delay(1000);
+            await delay(1200);
             document.getElementById('lostTitle').value = "Sony WH-1000XM5 Headphones";
             document.getElementById('lostCategory').value = "Electronics";
             document.getElementById('lostLocation').value = "Main Library - Desk 3";
@@ -1870,52 +1876,52 @@
             document.getElementById('lostDesc').value = "Black matte finish with case. Left behind on Table 4 in Library Quiet Zone.";
             document.getElementById('lostReporter').value = "Alex Morgan";
             document.getElementById('lostContact').value = "alex.morgan@university.edu";
-            await delay(1200);
+            await delay(1600);
             
             // Trigger Submit
             document.getElementById('btnSubmitLost').click();
-            await delay(1800);
+            await delay(2000);
 
             // Step 4: Verify in User Hub
             showToast("Step 4/7: Checking Student Hub Live Status...");
             window.navigateTo('user-dash');
-            await delay(1800);
+            await delay(2000);
 
             // Step 5: Attendant logs Found Item
             showToast("Step 5/7: Campus Desk logs Found Item (Library Desk)...");
             window.navigateTo('report-found');
-            await delay(1000);
+            await delay(1200);
             document.getElementById('foundTitle').value = "Apple iPad Air with Magic Pencil";
             document.getElementById('foundCategory').value = "Electronics";
             document.getElementById('foundLocation').value = "Main Library - Desk 3";
             document.getElementById('foundContact').value = "desk.library@university.edu";
             document.getElementById('foundDesc').value = "Space Gray iPad found at Desk 3 study carrel. Screen locked.";
-            await delay(1200);
+            await delay(1600);
             document.getElementById('btnSubmitFound').click();
-            await delay(1800);
+            await delay(2000);
 
             // Step 6: Browse Ledger & Filter
             showToast("Step 6/7: Testing Ledger Search & Category Filtering...");
             window.navigateTo('search');
             document.getElementById('searchInput').value = "Sony";
             window.applyLedgerFilters();
-            await delay(1500);
+            await delay(1800);
             document.getElementById('searchInput').value = "";
             window.applyLedgerFilters();
-            await delay(1000);
+            await delay(1400);
 
             // Step 7: Switch to Admin and Verify
             showToast("Step 7/7: Switching to Admin Panel to Verify & Hand Over...");
             processAuth('admin@godeskscout.com', 'Campus Chief Admin', 'admin', false, 'demo');
-            await delay(1200);
-            window.navigateTo('admin-dash');
             await delay(1500);
+            window.navigateTo('admin-dash');
+            await delay(1800);
 
             if (window.itemsLedger.length > 0) {
                 const first = window.itemsLedger[0];
                 showToast(`Admin approving item ${first.id} as RETURNED...`);
                 await window.updateItemStatus(first.id, 'RETURNED');
-                await delay(1200);
+                await delay(1500);
             }
 
             btn.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> Demo Mock 100% Passed!`;
@@ -1923,7 +1929,7 @@
             setTimeout(() => {
                 btn.innerHTML = origText;
                 btn.disabled = false;
-            }, 4000);
+            }, 6000);
         };
     </script>
 </body>

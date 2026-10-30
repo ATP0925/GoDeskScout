@@ -69,8 +69,14 @@ async function runTestSuite() {
     assert(htmlContent.includes('openSightingModal') && htmlContent.includes('submitSightingTip'), "Crowdsourced Campus Sighting Tips modal implemented");
     assert(htmlContent.includes('Campus Community Network'), "Campus Social Network showcase section present on Home View");
 
-    // 6. Security and Deployment
-    console.log("\n🔐 Section 5: Security Rules & Live Verification");
+    // 6. Presentation Mode & Demo Speed Verification
+    console.log("\n⚡ Section 6: Live Demo Mock 0.5x Speed & Presentation Pacing");
+    assert(htmlContent.includes('Speed: 0.5x Slow (Presentation Mode)'), "Demo speed badge displayed in top mock banner");
+    assert(htmlContent.includes('speedMultiplier = 2.0'), "Demo mock 0.5x playback speed multiplier (2.0x delay) configured");
+    assert(htmlContent.includes('Running Demo Mock (0.5x Slow)'), "Progress state informs user of 0.5x slow presentation speed");
+
+    // 7. Security and Deployment
+    console.log("\n🔐 Section 7: Security Rules & Live Verification");
     assert(rulesContent.includes('service cloud.firestore'), "Firestore security service block defined");
     assert(rulesContent.includes('isValidLedgerItem'), "Ledger domain schema validator enforced");
     assert(rulesContent.includes('match /{document=**} {\n      allow read, write: if false;'), "Default Deny fallback rule strictly enforced");
