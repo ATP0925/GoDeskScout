@@ -10,42 +10,43 @@
 A centralized college web application engineered for university students, faculty, and desk custodians to lodge complaints, search ledger entries, submit ownership claims, and track item handovers securely.
 
 🌐 **Live Deployed Application**: [https://godeskscout-app.web.app](https://godeskscout-app.web.app)  
-🚀 **Alternative URL**: [https://godeskscout-app.firebaseapp.com](https://godeskscout-app.firebaseapp.com)
+🚀 **Alternative URL**: [https://godeskscout-app.firebaseapp.com](https://godeskscout-app.firebaseapp.com)  
+📂 **GitHub Repository**: [https://github.com/ATP0925/GoDeskScout](https://github.com/ATP0925/GoDeskScout)
 
 ---
 
-## 🌟 Key Capabilities & Architecture
+## 🌟 Authentication & Access Architecture
 
-1. **Role-Based Authentication Wall**
-   - Restricts logins to campus emails (`.edu`, `.ac.in`) or administrative email (`admin@godeskscout.com`).
-   - 1-Click Quick Demo Login for instant evaluation:
+1. **Google Login Option**
+   - Direct 1-Click sign-in using Google Workspace account with official Google branding.
+   - Real-time profile synchronization (name, profile avatar, role).
+   - **Unlimited Access** (Does not consume device demo quota).
+
+2. **College Email & Password Login Option**
+   - Supports College Email validation (`.edu`, `.ac.in`, `.edu.in`, `admin@godeskscout.com`).
+   - Sign In and Sign Up modes with toggleable visibility, password eye toggle, and remember-me option.
+   - **Unlimited Access** (Does not consume device demo quota).
+
+3. **10-Use Limit Device Demo Quota (Device-Locked)**
+   - For evaluation and trial use, students/guests can test the platform without credentials using:
      - **Student Demo**: `alex.morgan@university.edu`
      - **Admin Demo**: `admin@godeskscout.com`
+     - **Run Full User Demo Mock**
+   - **Enforcement**: Strictly capped at **10 uses per device**.
+   - **Live Visual Quota Meter**: Dynamic progress bar and counter badge (`X/10 used`).
+   - **Exhaustion Behavior**: Once 10 uses are consumed on a device, demo buttons lock automatically (`<i class="fa-solid fa-lock"></i> Demo Limit Exceeded`), prompting the user to sign in using their **Google Account** or **College Email**.
+   - **Admin Reset**: An administrative reset button (`Reset Demo Quota`) is available in the Admin Panel for professors and project presentation reviews.
 
-2. **Real-time Campus Ledger**
-   - Live synchronization via **Google Cloud Firestore**.
-   - Offline & latency resilience with seamless local cache fallbacks.
-   - Categorized under: *Electronics*, *IDs & Cards*, *Stationery & Books*, *Keys & Accessories*, *Clothing & Bags*.
+---
 
-3. **Lodge Lost Item Complaint Wizard**
-   - Real-time form capture for item title, campus location/hub, timestamps, and distinct markings.
-   - Built-in **AI Suggest Description** feature that synthesizes item attribute templates on demand.
+## 📋 Core Modules & Pages
 
-4. **Log Found Items to Desk Custody**
-   - Desk attendants log found belongings turned into campus security or library desks.
-   - Live state updates visible across the entire campus network in real time.
-
-5. **Ownership Claim & Verification Engine**
-   - Claimants must provide secret descriptors (lockscreen wallpaper, engravings, serial digits, hidden contents) before physical handover.
-   - Automated state transition from `UNDER INVESTIGATION` / `FOUND` to `CLAIM PENDING`.
-
-6. **Campus Admin Control Center**
-   - Physical handover verification.
-   - Single-click action to mark items as `RETURNED` or purge resolved records.
-   - Presentation **Zero Reset** feature to reset the ledger for fresh demos.
-
-7. **Built-in Automated User Demo Mock**
-   - Interactive guided tour and automated 7-step test script executing in-browser across all pages and views.
+1. **Campus Ledger Bulletin**: Live cloud synchronized lost & found database via Google Cloud Firestore.
+2. **Lodge Lost Complaint**: Smart filing wizard with AI attribute recommendation.
+3. **Log Found Items**: Custody logging for campus desks and security stations.
+4. **Ownership Verification Claims**: Hidden identifier verification (serial digits, wallpapers, secret markings) before physical handovers.
+5. **Student Hub**: Live personal complaint tracking and management.
+6. **Campus Admin Control Center**: Claim approval, status transition to `RETURNED`, and presentation zero-reset.
 
 ---
 
@@ -78,16 +79,6 @@ Production-grade rules deployed to Cloud Firestore enforce:
    ```bash
    firebase deploy --only hosting,firestore:rules
    ```
-
----
-
-## 💻 Tech Stack
-
-- **Frontend**: HTML5, Modern Modular JavaScript (ES6+), Tailwind CSS, Font Awesome 6.5
-- **Cloud Backend**: Google Firebase v11 Modular SDK
-- **Database**: Google Cloud Firestore (Native Mode)
-- **Hosting**: Firebase Global CDN with custom security response headers
-- **Version Control**: Git & GitHub
 
 ---
 

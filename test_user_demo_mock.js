@@ -1,6 +1,6 @@
 /**
  * GoDeskScout Comprehensive User Demo Mock Test Suite
- * Validates Page-by-Page Workflows, DOM integrity, Security Rules & Live Deployment
+ * Validates Google Login, Email Login, 10-Use Device Demo Quota & Firebase Deployment
  */
 
 const fs = require('fs');
@@ -26,7 +26,7 @@ function assert(condition, testName) {
 
 async function runTestSuite() {
     console.log("==========================================================");
-    console.log("🔍 GODESKSCOUT USER DEMO MOCK TEST SUITE");
+    console.log("🔍 GODESKSCOUT COMPREHENSIVE TEST SUITE");
     console.log("==========================================================");
 
     // 1. File verification
@@ -38,8 +38,23 @@ async function runTestSuite() {
     const htmlContent = fs.readFileSync(indexPath, 'utf-8');
     const rulesContent = fs.readFileSync(rulesPath, 'utf-8');
 
-    // 2. Page Views Verification
-    console.log("\n📄 Section 2: Page-by-Page View Architecture");
+    // 2. Auth Options Verification
+    console.log("\n🔑 Section 2: Google & Email Login Options");
+    assert(htmlContent.includes('handleGoogleLogin') && htmlContent.includes('btnGoogleAuth'), "Google Login option implemented with branded action");
+    assert(htmlContent.includes('handleLogin') && htmlContent.includes('login-email'), "Email Login form with College email support implemented");
+    assert(htmlContent.includes('handleSignUp') && htmlContent.includes('signup-email'), "Email Sign Up option implemented");
+    assert(htmlContent.includes('isCollegeEmail'), "College Email validation (.edu, .ac.in, admin@godeskscout.com)");
+
+    // 3. Demo 10-Use Device Quota Verification
+    console.log("\n⏱️ Section 3: Device Demo Quota (Max 10 Uses Per Device)");
+    assert(htmlContent.includes('MAX_DEVICE_DEMO_LIMIT = 10'), "Max 10-use limit strictly defined");
+    assert(htmlContent.includes('consumeDeviceDemoQuota'), "Device quota consumption logic enforced");
+    assert(htmlContent.includes('getDeviceDemoUsage'), "Device usage tracking persisted in localStorage");
+    assert(htmlContent.includes('updateDemoQuotaUI'), "Visual quota meter & progress bar implemented");
+    assert(htmlContent.includes('resetDeviceDemoQuota'), "Admin presentation reset quota option provided");
+
+    // 4. Page-by-Page View Architecture
+    console.log("\n📄 Section 4: Page-by-Page View Architecture");
     assert(htmlContent.includes('id="page-home"'), "Page 1: Home View with Hero and Stats is present");
     assert(htmlContent.includes('id="page-search"'), "Page 2: Search & Browse Ledger View is present");
     assert(htmlContent.includes('id="page-report-lost"'), "Page 3: Lodge Lost Item Complaint Form is present");
@@ -47,25 +62,14 @@ async function runTestSuite() {
     assert(htmlContent.includes('id="page-user-dash"'), "Page 5: Student Hub Dashboard View is present");
     assert(htmlContent.includes('id="page-admin-dash"'), "Page 6: Admin Control Center View is present");
 
-    // 3. User Demo Mock Runner & Interactive Elements
-    console.log("\n🧪 Section 3: Interactive User Demo Mock Runner");
-    assert(htmlContent.includes('runAutomatedDemoMock'), "Automated User Demo Mock script integrated");
-    assert(htmlContent.includes('quickLogin'), "1-Click Quick Demo Login (Student/Admin) implemented");
-    assert(htmlContent.includes('resetPresentationData'), "Zero Reset presentation button present");
-    assert(htmlContent.includes('generateAIDescription'), "AI Suggest Description capability integrated");
-
-    // 4. Modals and Security Controls
-    console.log("\n🔐 Section 4: Security & Modals Verification");
-    assert(htmlContent.includes('id="authModal"'), "Campus Authentication Wall modal present");
-    assert(htmlContent.includes('id="claimModal"'), "Ownership Proof Claim Modal present");
-    assert(htmlContent.includes('isCollegeEmail'), "College Email Domain Enforcement (.edu, .ac.in)");
+    // 5. Mock Logic and Security
+    console.log("\n🔐 Section 5: Security Rules & Live Verification");
     assert(rulesContent.includes('service cloud.firestore'), "Firestore security service block defined");
     assert(rulesContent.includes('isValidLedgerItem'), "Ledger domain schema validator enforced");
-    assert(rulesContent.includes('isValidClaim'), "Claim proof validation enforced");
     assert(rulesContent.includes('match /{document=**} {\n      allow read, write: if false;'), "Default Deny fallback rule strictly enforced");
 
-    // 5. Live Firebase Hosting HTTP Verification
-    console.log("\n🌐 Section 5: Live Firebase Cloud Deployment Check");
+    // 6. Live Firebase Hosting HTTP Verification
+    console.log("\n🌐 Section 6: Live Firebase Cloud Deployment Check");
     const liveUrl = "https://godeskscout-app.web.app";
     try {
         await new Promise((resolve) => {

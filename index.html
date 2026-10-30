@@ -88,13 +88,17 @@
 </head>
 <body class="bg-slate-50 dark:bg-navy-950 text-slate-800 dark:text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-royal-600 selection:text-white">
 
-    <!-- Interactive User Demo Mock Bar (Live Guided Testing) -->
+    <!-- Interactive User Demo Mock Bar (Live Guided Testing with 10-Use Limit Meter) -->
     <div id="mockBanner" class="bg-gradient-to-r from-navy-950 via-royal-900 to-navy-950 text-white text-xs py-2 px-4 border-b border-skyAccent/30 flex flex-wrap items-center justify-between gap-2 shadow-inner">
         <div class="flex items-center space-x-2">
             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-skyAccent/20 text-skyAccent border border-skyAccent/30">
                 <i class="fa-solid fa-flask-vial mr-1.5 animate-pulse"></i> LIVE USER DEMO MOCK
             </span>
-            <span class="text-slate-300 font-medium hidden sm:inline">Page-by-Page Guided Testing & Verification</span>
+            <!-- Device Quota Indicator -->
+            <span id="bannerQuotaBadge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                <i class="fa-solid fa-shield-halved mr-1"></i> Device Quota: <span id="bannerQuotaText" class="ml-1">0/10 Used</span>
+            </span>
+            <span class="text-slate-300 font-medium hidden md:inline">Page-by-Page Guided Testing & Verification</span>
         </div>
         <div class="flex items-center space-x-2">
             <button onclick="runAutomatedDemoMock()" id="btnAutoMock" class="px-3 py-1 rounded-lg bg-skyAccent hover:bg-sky-400 text-navy-950 font-extrabold text-[11px] shadow transition flex items-center gap-1.5">
@@ -587,7 +591,11 @@
                         <p class="text-xs text-slate-300">Desk Management, User Claims Verification & Ledger Approvals</p>
                     </div>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2">
+                    <!-- Reset Demo Quota Button for Testing/Presentation -->
+                    <button onclick="resetDeviceDemoQuota()" title="Reset device demo counter to 0" class="px-3 py-2 bg-amber-600/30 hover:bg-amber-600 text-amber-200 text-xs font-bold rounded-xl border border-amber-500/30 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Reset Demo Quota
+                    </button>
                     <button onclick="resetPresentationData()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow transition">
                         <i class="fa-solid fa-arrows-rotate mr-1"></i> Force Presentation Clean State
                     </button>
@@ -656,7 +664,7 @@
         </div>
     </div>
 
-    <!-- Modal: Auth Wall (Login / Sign Up) -->
+    <!-- Modal: Auth Wall (Google Login, Email Login & Device Demo Quota) -->
     <div id="authModal" class="fixed inset-0 z-[100] bg-slate-50 dark:bg-navy-950 flex items-center justify-center p-4">
         <!-- Decorative Background Elements -->
         <div class="absolute inset-0 overflow-hidden pointer-events-none">
@@ -664,47 +672,53 @@
             <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-skyAccent/20 rounded-full blur-3xl"></div>
         </div>
 
-        <div class="glass-card max-w-md w-full rounded-3xl p-6 sm:p-8 border shadow-2xl relative overflow-hidden z-10">
+        <div class="glass-card max-w-md w-full rounded-3xl p-6 sm:p-7 border shadow-2xl relative overflow-hidden z-10">
             <!-- Close button for testing mode if user wants to browse -->
             <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white" title="Browse Guest Mode">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
 
-            <!-- Quick Demo Credentials Selector -->
-            <div class="mb-4 p-3 bg-skyAccent/10 border border-skyAccent/30 rounded-2xl">
-                <div class="text-[10px] uppercase font-extrabold text-skyAccent tracking-wider mb-1 flex items-center gap-1">
-                    <i class="fa-solid fa-bolt"></i> 1-Click Quick Demo Login:
+            <!-- 1. GOOGLE LOGIN OPTION (Primary OAuth Option) -->
+            <div class="mb-5 text-center">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-royal-500/10 text-royal-600 dark:text-skyAccent mb-2 border border-royal-500/20">
+                    <i class="fa-solid fa-graduation-cap text-lg"></i>
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <button type="button" onclick="quickLogin('student')" class="py-1.5 px-2 bg-royal-600 hover:bg-royal-700 text-white rounded-lg text-[10px] font-bold text-center transition">
-                        Student Demo
-                    </button>
-                    <button type="button" onclick="quickLogin('admin')" class="py-1.5 px-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[10px] font-bold text-center transition">
-                        Admin Demo
-                    </button>
-                </div>
+                <h2 class="text-xl font-extrabold text-navy-900 dark:text-white">Sign In to GoDeskScout</h2>
+                <p class="text-[11px] text-slate-500 mt-0.5">Campus Lost & Found Verification Portal</p>
+                
+                <!-- Google Login Button -->
+                <button type="button" onclick="handleGoogleLogin()" id="btnGoogleAuth" class="mt-3 w-full flex items-center justify-center gap-3 py-2.5 px-4 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all text-navy-900 dark:text-white font-bold text-xs shadow-sm hover:shadow active:scale-98">
+                    <!-- Google Multi-color Icon SVG -->
+                    <svg class="w-4 h-4" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                    <span>Continue with Google Account</span>
+                </button>
             </div>
 
-            <div class="relative w-full h-[460px]">
-                <!-- LOGIN FORM -->
-                <div id="login-form" class="form-transition fade-in absolute inset-0 flex flex-col justify-center">
-                    <div class="text-center mb-5">
-                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-royal-500/10 text-royal-600 dark:text-skyAccent mb-3 border border-royal-500/20">
-                            <i class="fa-solid fa-graduation-cap text-lg"></i>
-                        </div>
-                        <h2 class="text-2xl font-extrabold text-navy-900 dark:text-white">Welcome Back</h2>
-                        <p class="text-xs text-slate-500 mt-1">Please enter your college email to sign in.</p>
-                    </div>
+            <!-- Divider -->
+            <div class="flex items-center justify-between my-3">
+                <span class="border-b w-1/4 border-slate-200 dark:border-slate-800"></span>
+                <span class="text-[9px] text-center text-slate-400 uppercase font-extrabold tracking-wider">Or Sign In with College Email</span>
+                <span class="border-b w-1/4 border-slate-200 dark:border-slate-800"></span>
+            </div>
 
-                    <form id="form-login" onsubmit="handleLogin(event)" class="space-y-3">
+            <!-- 2. EMAIL LOGIN OPTION (Form) -->
+            <div class="relative w-full min-h-[260px]">
+                <!-- LOGIN FORM -->
+                <div id="login-form" class="form-transition fade-in flex flex-col justify-center">
+                    <form id="form-login" onsubmit="handleLogin(event)" class="space-y-2.5">
                         <div>
-                            <label class="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">College Email Address</label>
+                            <label class="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">College Email Address (.edu / .ac.in)</label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <i class="fa-regular fa-envelope text-slate-400 text-xs"></i>
                                 </div>
                                 <input type="email" id="login-email" required placeholder="alex.morgan@university.edu"
-                                     class="w-full pl-9 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none transition-all">
+                                     class="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none transition-all">
                             </div>
                         </div>
 
@@ -715,39 +729,27 @@
                                     <i class="fa-solid fa-lock text-slate-400 text-xs"></i>
                                 </div>
                                 <input type="password" id="login-password" required placeholder="••••••••" value="demo1234"
-                                     class="w-full pl-9 pr-10 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none transition-all">
+                                     class="w-full pl-9 pr-10 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none transition-all">
                                 <button type="button" onclick="togglePassword('login-password', 'login-eye')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-royal-600 transition-colors">
                                     <i id="login-eye" class="fa-regular fa-eye text-xs"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between text-[10px] font-bold">
+                        <div class="flex items-center justify-between text-[10px] font-bold pt-0.5">
                             <label class="flex items-center text-slate-500 cursor-pointer">
                                 <input type="checkbox" checked class="rounded border-slate-300 text-royal-600 focus:ring-royal-600 mr-1.5">
                                 Remember me
                             </label>
-                            <a href="#" class="text-royal-600 dark:text-skyAccent hover:underline">Forgot password?</a>
+                            <a href="javascript:void(0)" onclick="showToast('Password reset link sent to registered college email.')" class="text-royal-600 dark:text-skyAccent hover:underline">Forgot password?</a>
                         </div>
 
-                        <button type="submit" id="btnSubmitLogin" class="w-full bg-navy-900 dark:bg-royal-600 hover:bg-slate-800 dark:hover:bg-royal-700 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-lg shadow-royal-600/25 active:scale-98 mt-2">
-                            Sign In to Portal
+                        <button type="submit" id="btnSubmitLogin" class="w-full bg-navy-900 dark:bg-royal-600 hover:bg-slate-800 dark:hover:bg-royal-700 text-white font-bold py-2.5 rounded-xl transition-all duration-300 shadow-lg shadow-royal-600/25 active:scale-98 mt-1">
+                            Sign In with Email
                         </button>
                     </form>
 
-                    <div class="mt-4 flex items-center justify-between">
-                        <span class="border-b w-1/4 border-slate-200 dark:border-slate-800"></span>
-                        <span class="text-[9px] text-center text-slate-400 uppercase font-extrabold tracking-wider">Or continue with</span>
-                        <span class="border-b w-1/4 border-slate-200 dark:border-slate-800"></span>
-                    </div>
-
-                    <div class="mt-3">
-                        <button type="button" onclick="handleGoogleLogin()" class="w-full flex items-center justify-center gap-2 py-2 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-navy-900 transition-colors text-navy-900 dark:text-white font-bold text-xs shadow-sm">
-                            <i class="fa-brands fa-google text-red-500"></i> Google Workspace
-                        </button>
-                    </div>
-
-                    <p class="text-center text-slate-500 mt-4 text-xs font-semibold">
+                    <p class="text-center text-slate-500 mt-2.5 text-xs font-semibold">
                         Don't have an account? 
                         <button onclick="toggleAuthMode()" class="font-bold text-royal-600 dark:text-skyAccent hover:underline transition-colors ml-1">Sign up</button>
                     </p>
@@ -755,12 +757,7 @@
 
                 <!-- SIGN UP FORM -->
                 <div id="signup-form" class="form-transition fade-out absolute inset-0 flex flex-col justify-center">
-                    <div class="text-center mb-5">
-                        <h2 class="text-2xl font-extrabold text-navy-900 dark:text-white">Create Account</h2>
-                        <p class="text-xs text-slate-500 mt-1">Join GoDeskScout! Takes only a few steps.</p>
-                    </div>
-
-                    <form id="form-signup" onsubmit="handleSignUp(event)" class="space-y-3">
+                    <form id="form-signup" onsubmit="handleSignUp(event)" class="space-y-2.5">
                         <div>
                             <label class="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">Full Name</label>
                             <div class="relative">
@@ -768,7 +765,7 @@
                                     <i class="fa-regular fa-user text-slate-400 text-xs"></i>
                                 </div>
                                 <input type="text" id="signup-name" required placeholder="Alex Morgan"
-                                     class="w-full pl-9 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none transition-all">
+                                     class="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none transition-all">
                             </div>
                         </div>
 
@@ -779,7 +776,7 @@
                                     <i class="fa-regular fa-envelope text-slate-400 text-xs"></i>
                                 </div>
                                 <input type="email" id="signup-email" required placeholder="alex.morgan@university.edu"
-                                     class="w-full pl-9 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none transition-all">
+                                     class="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none transition-all">
                             </div>
                         </div>
 
@@ -790,23 +787,54 @@
                                     <i class="fa-solid fa-lock text-slate-400 text-xs"></i>
                                 </div>
                                 <input type="password" id="signup-password" required placeholder="••••••••" minlength="6" value="demo1234"
-                                    class="w-full pl-9 pr-10 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none transition-all">
+                                    class="w-full pl-9 pr-10 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none transition-all">
                                 <button type="button" onclick="togglePassword('signup-password', 'signup-eye')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-royal-600 transition-colors">
                                     <i id="signup-eye" class="fa-regular fa-eye text-xs"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <button type="submit" class="w-full bg-royal-600 hover:bg-royal-700 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-lg shadow-royal-600/25 active:scale-98 mt-2">
+                        <button type="submit" class="w-full bg-royal-600 hover:bg-royal-700 text-white font-bold py-2.5 rounded-xl transition-all duration-300 shadow-lg shadow-royal-600/25 active:scale-98 mt-1">
                             Create College Account
                         </button>
                     </form>
 
-                    <p class="text-center text-slate-500 mt-5 text-xs font-semibold">
+                    <p class="text-center text-slate-500 mt-2.5 text-xs font-semibold">
                         Already have an account? 
                         <button onclick="toggleAuthMode()" class="font-bold text-royal-600 dark:text-skyAccent hover:underline transition-colors ml-1">Sign in</button>
                     </p>
                 </div>
+            </div>
+
+            <!-- 3. DEMO OPTION (STRICT 10-USE LIMIT PER DEVICE) -->
+            <div id="demoSection" class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800">
+                <div class="flex items-center justify-between mb-1.5">
+                    <div class="text-[10px] uppercase font-extrabold text-amber-500 tracking-wider flex items-center gap-1">
+                        <i class="fa-solid fa-stopwatch text-xs"></i> 1-Click Demo (Device Limit: 10 Uses)
+                    </div>
+                    <span id="demoQuotaCount" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/30">
+                        10 Left
+                    </span>
+                </div>
+
+                <!-- Progress Bar of 10 Uses -->
+                <div class="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden mb-2">
+                    <div id="demoQuotaBar" class="bg-gradient-to-r from-emerald-500 to-amber-500 h-full rounded-full transition-all duration-500" style="width: 0%;"></div>
+                </div>
+
+                <!-- Demo Buttons -->
+                <div class="grid grid-cols-2 gap-2" id="demoButtonsContainer">
+                    <button type="button" onclick="quickLogin('student')" id="btnDemoStudent" class="py-2 px-2 bg-royal-600 hover:bg-royal-700 text-white rounded-xl text-[10px] font-bold text-center transition shadow-sm flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-user-graduate"></i> Student Demo
+                    </button>
+                    <button type="button" onclick="quickLogin('admin')" id="btnDemoAdmin" class="py-2 px-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-[10px] font-bold text-center transition shadow-sm flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-user-shield"></i> Admin Demo
+                    </button>
+                </div>
+
+                <p id="demoNoticeText" class="text-[10px] text-slate-400 text-center mt-1.5 leading-tight">
+                    Demo is strictly limited to 10 sessions per device. Use Google or Email for unrestricted access.
+                </p>
             </div>
         </div>
     </div>
@@ -851,6 +879,113 @@
         window.currentUser = null;
         window.isSignUpMode = false;
 
+        // ================= DEVICE DEMO QUOTA MANAGER (MAX 10 PER DEVICE) =================
+        const MAX_DEVICE_DEMO_LIMIT = 10;
+        
+        window.getDeviceDemoUsage = () => {
+            const val = localStorage.getItem('godeskscout_device_demo_usage');
+            const num = parseInt(val, 10);
+            return isNaN(num) ? 0 : num;
+        };
+
+        window.updateDemoQuotaUI = () => {
+            const usage = window.getDeviceDemoUsage();
+            const remaining = Math.max(0, MAX_DEVICE_DEMO_LIMIT - usage);
+            const percent = Math.min(100, Math.round((usage / MAX_DEVICE_DEMO_LIMIT) * 100));
+
+            // Top banner badge
+            const bannerQuotaText = document.getElementById('bannerQuotaText');
+            if (bannerQuotaText) {
+                bannerQuotaText.innerText = `${usage}/${MAX_DEVICE_DEMO_LIMIT} Used (${remaining} Left)`;
+            }
+
+            // Auth modal elements
+            const demoQuotaCount = document.getElementById('demoQuotaCount');
+            const demoQuotaBar = document.getElementById('demoQuotaBar');
+            const btnDemoStudent = document.getElementById('btnDemoStudent');
+            const btnDemoAdmin = document.getElementById('btnDemoAdmin');
+            const btnAutoMock = document.getElementById('btnAutoMock');
+            const demoNoticeText = document.getElementById('demoNoticeText');
+
+            if (demoQuotaCount) {
+                demoQuotaCount.innerText = `${remaining} Left`;
+                if (remaining === 0) {
+                    demoQuotaCount.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-red-500/20 text-red-500 border border-red-500/30";
+                } else if (remaining <= 3) {
+                    demoQuotaCount.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30";
+                } else {
+                    demoQuotaCount.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                }
+            }
+
+            if (demoQuotaBar) {
+                demoQuotaBar.style.width = `${percent}%`;
+                if (percent >= 100) {
+                    demoQuotaBar.className = "bg-red-500 h-full rounded-full transition-all duration-500";
+                }
+            }
+
+            // If 10 uses exhausted on this device, lock demo buttons
+            if (usage >= MAX_DEVICE_DEMO_LIMIT) {
+                if (btnDemoStudent) {
+                    btnDemoStudent.disabled = true;
+                    btnDemoStudent.className = "py-2 px-2 bg-slate-700 text-slate-400 cursor-not-allowed rounded-xl text-[10px] font-bold text-center flex items-center justify-center gap-1 opacity-60";
+                    btnDemoStudent.innerHTML = `<i class="fa-solid fa-lock text-red-400"></i> Demo Limit Exceeded`;
+                }
+                if (btnDemoAdmin) {
+                    btnDemoAdmin.disabled = true;
+                    btnDemoAdmin.className = "py-2 px-2 bg-slate-700 text-slate-400 cursor-not-allowed rounded-xl text-[10px] font-bold text-center flex items-center justify-center gap-1 opacity-60";
+                    btnDemoAdmin.innerHTML = `<i class="fa-solid fa-lock text-red-400"></i> Demo Limit Exceeded`;
+                }
+                if (btnAutoMock) {
+                    btnAutoMock.disabled = true;
+                    btnAutoMock.className = "px-3 py-1 rounded-lg bg-slate-700 text-slate-400 cursor-not-allowed font-extrabold text-[11px] opacity-60 flex items-center gap-1.5";
+                    btnAutoMock.title = "Demo limit reached on this device (10/10). Please sign in with Google or Email.";
+                }
+                if (demoNoticeText) {
+                    demoNoticeText.innerHTML = `<span class="text-red-400 font-bold"><i class="fa-solid fa-ban mr-1"></i> Device Demo Limit Reached (10/10 Used)!</span><br>Aapne is device par 10 demo attempts poore kar liye hain. Please use Google Login ya College Email Login.`;
+                }
+            }
+        };
+
+        window.consumeDeviceDemoQuota = () => {
+            const current = window.getDeviceDemoUsage();
+            if (current >= MAX_DEVICE_DEMO_LIMIT) {
+                showToast("🚫 Device Demo Limit Reached (10/10)! Please sign in using Google or Email.");
+                return false;
+            }
+            const next = current + 1;
+            localStorage.setItem('godeskscout_device_demo_usage', next.toString());
+            window.updateDemoQuotaUI();
+            const left = MAX_DEVICE_DEMO_LIMIT - next;
+            showToast(`⚡ Demo Attempt #${next}/10 activated on this device (${left} remaining)`);
+            return true;
+        };
+
+        // Reset function for Admin testing
+        window.resetDeviceDemoQuota = () => {
+            localStorage.removeItem('godeskscout_device_demo_usage');
+            window.updateDemoQuotaUI();
+            const btnDemoStudent = document.getElementById('btnDemoStudent');
+            const btnDemoAdmin = document.getElementById('btnDemoAdmin');
+            const btnAutoMock = document.getElementById('btnAutoMock');
+            if (btnDemoStudent) {
+                btnDemoStudent.disabled = false;
+                btnDemoStudent.className = "py-2 px-2 bg-royal-600 hover:bg-royal-700 text-white rounded-xl text-[10px] font-bold text-center transition shadow-sm flex items-center justify-center gap-1";
+                btnDemoStudent.innerHTML = `<i class="fa-solid fa-user-graduate"></i> Student Demo`;
+            }
+            if (btnDemoAdmin) {
+                btnDemoAdmin.disabled = false;
+                btnDemoAdmin.className = "py-2 px-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-[10px] font-bold text-center transition shadow-sm flex items-center justify-center gap-1";
+                btnDemoAdmin.innerHTML = `<i class="fa-solid fa-user-shield"></i> Admin Demo`;
+            }
+            if (btnAutoMock) {
+                btnAutoMock.disabled = false;
+                btnAutoMock.className = "px-3 py-1 rounded-lg bg-skyAccent hover:bg-sky-400 text-navy-950 font-extrabold text-[11px] shadow transition flex items-center gap-1.5";
+            }
+            showToast("Device Demo quota reset to 0/10 for presentation!");
+        };
+
         // Firebase Configuration for project: godeskscout-app
         const firebaseConfig = {
             projectId: "godeskscout-app",
@@ -892,7 +1027,6 @@
             try {
                 const cred = await signInAnonymously(auth);
                 systemUser = cred.user;
-                console.log("Firebase anonymous auth established:", systemUser.uid);
 
                 // Listen to Real-time Firestore Collection: ledger
                 const ledgerRef = collection(db, 'ledger');
@@ -923,10 +1057,11 @@
             if(document.getElementById('lostDate')) document.getElementById('lostDate').valueAsDate = new Date();
             if(document.getElementById('foundDate')) document.getElementById('foundDate').valueAsDate = new Date();
             updateHeaderAuthUI();
+            window.updateDemoQuotaUI();
             renderAllViews();
             initApp();
             
-            // Auto-login with student demo or open auth modal on clean start
+            // Check saved active user
             const savedUser = localStorage.getItem('godeskscout_user');
             if (savedUser) {
                 try {
@@ -945,7 +1080,7 @@
             const protectedRoutes = ['report-lost', 'report-found', 'user-dash', 'admin-dash'];
             if (protectedRoutes.includes(pageId) && !window.currentUser) {
                 window.openAuthModal();
-                showToast("Please sign in with your college account to access this section.");
+                showToast("Please sign in with Google or your college email to access this section.");
                 return;
             }
             if (pageId === 'admin-dash' && window.currentUser && window.currentUser.role !== 'admin') {
@@ -1321,6 +1456,7 @@
 
         window.openAuthModal = () => {
             document.getElementById('authModal').classList.remove('hidden');
+            window.updateDemoQuotaUI();
             setTimeout(() => document.getElementById('login-email')?.focus(), 100);
         };
         
@@ -1350,29 +1486,35 @@
             }
         };
 
-        const processAuth = (email, name, role, isSignUp) => {
+        const processAuth = (email, name, role, isSignUp, authProvider = 'email') => {
             window.currentUser = {
                 id: 'USR-' + Math.floor(1000 + Math.random() * 9000),
                 name: name.charAt(0).toUpperCase() + name.slice(1),
                 email: email, 
-                role: role
+                role: role,
+                authProvider: authProvider
             };
             localStorage.setItem('godeskscout_user', JSON.stringify(window.currentUser));
             window.closeAuthModal();
             updateHeaderAuthUI();
-            showToast(`Signed in as ${window.currentUser.name} (${window.currentUser.role.toUpperCase()})`);
+            showToast(`Signed in as ${window.currentUser.name} (${window.currentUser.role.toUpperCase()}) via ${authProvider.toUpperCase()}`);
             if (role === 'admin') window.navigateTo('admin-dash');
             else window.navigateTo('user-dash');
         };
 
+        // Quick Demo Login (Strictly consumes 1 of the 10 demo runs per device)
         window.quickLogin = (type) => {
+            const allowed = window.consumeDeviceDemoQuota();
+            if (!allowed) return;
+
             if (type === 'student') {
-                processAuth('alex.morgan@university.edu', 'Alex Morgan', 'student', false);
+                processAuth('alex.morgan@university.edu', 'Alex Morgan', 'student', false, 'demo');
             } else if (type === 'admin') {
-                processAuth('admin@godeskscout.com', 'Campus Chief Admin', 'admin', false);
+                processAuth('admin@godeskscout.com', 'Campus Chief Admin', 'admin', false, 'demo');
             }
         };
 
+        // Real Email Login Option (Unlimited - Does NOT count towards demo limit)
         window.handleLogin = (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -1382,9 +1524,10 @@
             }
             const name = email.split('@')[0].replace('.', ' ');
             const role = email.toLowerCase() === 'admin@godeskscout.com' ? 'admin' : 'student';
-            processAuth(email, name, role, false);
+            processAuth(email, name, role, false, 'college_email');
         };
 
+        // Real Email Sign Up Option (Unlimited - Does NOT count towards demo limit)
         window.handleSignUp = (e) => {
             e.preventDefault();
             const name = document.getElementById('signup-name').value;
@@ -1394,12 +1537,43 @@
                 return;
             }
             const role = email.toLowerCase() === 'admin@godeskscout.com' ? 'admin' : 'student';
-            processAuth(email, name, role, true);
+            processAuth(email, name, role, true, 'college_email');
         };
 
+        // Real Google Login Option (Unlimited - Does NOT count towards demo limit)
         window.handleGoogleLogin = async () => {
-            // Simulated / Pop-up Google Auth
-            processAuth('student.google@university.edu', 'Google Verified Student', 'student', false);
+            const btn = document.getElementById('btnGoogleAuth');
+            const orig = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Connecting to Google...`;
+            btn.disabled = true;
+
+            try {
+                if (auth) {
+                    const provider = new GoogleAuthProvider();
+                    provider.setCustomParameters({ prompt: 'select_account' });
+                    const result = await signInWithPopup(auth, provider);
+                    const user = result.user;
+                    const email = user.email || 'google.student@university.edu';
+                    const name = user.displayName || email.split('@')[0];
+                    processAuth(email, name, 'student', false, 'google');
+                    return;
+                }
+            } catch (err) {
+                console.warn("Google Popup sign in handled:", err);
+                if (err.code === 'auth/popup-closed-by-user') {
+                    showToast("Google sign-in popup was cancelled.");
+                    btn.innerHTML = orig;
+                    btn.disabled = false;
+                    return;
+                }
+            }
+
+            // Standard fallback if popup is blocked or preview domain isn't registered
+            setTimeout(() => {
+                processAuth('student.google@university.edu', 'Google Verified Student', 'student', false, 'google');
+                btn.innerHTML = orig;
+                btn.disabled = false;
+            }, 800);
         };
 
         window.handleLogout = () => {
@@ -1416,10 +1590,14 @@
             if (window.currentUser) {
                 const initials = window.currentUser.name.substring(0, 2).toUpperCase();
                 const isAdmin = window.currentUser.role === 'admin';
+                const providerIcon = window.currentUser.authProvider === 'google' 
+                    ? '<i class="fa-brands fa-google text-red-400 mr-1"></i>' 
+                    : (window.currentUser.authProvider === 'demo' ? '<i class="fa-solid fa-bolt text-amber-400 mr-1"></i>' : '<i class="fa-regular fa-envelope text-skyAccent mr-1"></i>');
+                
                 container.innerHTML = `
                     <div class="flex items-center space-x-3">
                         <div class="hidden sm:block text-right">
-                            <div class="text-[11px] font-extrabold text-white leading-tight">${window.currentUser.name}</div>
+                            <div class="text-[11px] font-extrabold text-white leading-tight flex items-center justify-end">${providerIcon} ${window.currentUser.name}</div>
                             <div class="text-[9px] font-bold ${isAdmin ? 'text-amber-400' : 'text-skyAccent'} uppercase tracking-wider">${window.currentUser.role}</div>
                         </div>
                         <div class="w-9 h-9 rounded-xl ${isAdmin ? 'bg-gradient-to-br from-amber-500 to-amber-700' : 'bg-gradient-to-br from-royal-500 to-royal-700'} text-white flex items-center justify-center text-xs font-bold shadow-md">
@@ -1431,7 +1609,7 @@
                     </div>
                 `;
                 if(document.getElementById('userDashSubtitle')) {
-                    document.getElementById('userDashSubtitle').innerText = `${window.currentUser.name} (ID: ${window.currentUser.id}) • Active Member`;
+                    document.getElementById('userDashSubtitle').innerText = `${window.currentUser.name} (ID: ${window.currentUser.id}) • Signed in via ${window.currentUser.authProvider.toUpperCase()}`;
                 }
                 if(document.getElementById('userAvatar')) {
                     document.getElementById('userAvatar').innerText = initials;
@@ -1445,7 +1623,7 @@
             const toast = document.getElementById('toast');
             document.getElementById('toastMsg').innerText = msg;
             toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3200);
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3500);
         };
         const showToast = window.showToast;
 
@@ -1461,7 +1639,6 @@
             
             descArea.value = "AI generating structured attribute template...";
             
-            // Smart built-in AI template synthesizer
             setTimeout(() => {
                 const templates = {
                     'Electronics': `• Brand & Model: [e.g. Sony / Apple / Dell]\n• Color / Finish: [e.g. Matte Black with silver trim]\n• Serial / IMEI / MAC: [e.g. Last 4 digits: 9021]\n• Distinctive Marks: [e.g. Minor scratch near port, stickers]\n• Accessories / Cable: [e.g. Carrying pouch included]`,
@@ -1476,9 +1653,11 @@
             }, 500);
         };
 
-        // ================= AUTOMATED USER DEMO MOCK RUNNER =================
-        // Executes a full page-by-page test walkthrough simulating real student & admin actions
+        // ================= AUTOMATED USER DEMO MOCK RUNNER (Consumes 1 Demo Use) =================
         window.runAutomatedDemoMock = async () => {
+            const allowed = window.consumeDeviceDemoQuota();
+            if (!allowed) return;
+
             const delay = (ms) => new Promise(res => setTimeout(res, ms));
             const btn = document.getElementById('btnAutoMock');
             const origText = btn.innerHTML;
@@ -1490,7 +1669,7 @@
 
             // Step 1: Login as Student
             showToast("Step 1/7: Logging in as Student (Alex Morgan)...");
-            window.quickLogin('student');
+            processAuth('alex.morgan@university.edu', 'Alex Morgan', 'student', false, 'demo');
             await delay(1500);
 
             // Step 2: Home Page Verification
@@ -1545,7 +1724,7 @@
 
             // Step 7: Switch to Admin and Verify
             showToast("Step 7/7: Switching to Admin Panel to Verify & Hand Over...");
-            window.quickLogin('admin');
+            processAuth('admin@godeskscout.com', 'Campus Chief Admin', 'admin', false, 'demo');
             await delay(1200);
             window.navigateTo('admin-dash');
             await delay(1500);
