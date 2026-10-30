@@ -1,0 +1,370 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: ledger/{docId} & artifacts/{appId}/public/data/ledger/{docId}
+// Document ID: Alphanumeric item ID (e.g., LST-1234, FND-5678)
+// Fields:
+//   - id: string (required, 1-20 chars, immutable) - Unique item code
+//   - type: string (required, 'LOST' | 'FOUND', immutable) - Complaint type
+//   - title: string (required, 1-200 chars) - Title or headline of the item
+//   - category: string (required, constrained enum) - One of: 'Electronics', 'IDs & Cards', 'Stationery & Books', 'Keys & Accessories', 'Clothing & Bags'
+//   - location: string (required, 1-200 chars) - Specific campus spot found or lost
+//   - date: string (required, 8-20 chars, immutable) - Date string (YYYY-MM-DD or DD/MM/YYYY)
+//   - time: string (required, 0-50 chars) - Time string or description
+//   - marks: string (required, 0-200 chars) - Distinguishing physical features
+//   - desc: string (required, 1-2000 chars) - In-depth description
+//   - reporter: string (required, 1-100 chars, immutable) - Reporter identifier or UID
+//   - contact: string (required, 1-150 chars) - Campus contact info / phone / email
+//   - status: string (required, constrained enum) - 'UNDER INVESTIGATION' | 'FOUND' | 'CLAIM PENDING' | 'RETURNED'
+//   - timestamp: number (required, positive, immutable) - Epoch milliseconds or seconds
+//   - dbId: string | number (optional, <= 100 chars) - System identifier
+//   - claimantName: string (optional, <= 100 chars) - Name of student making claim
+//   - claimProof: string (optional, <= 2000 chars) - Specific claim proof submitted
+//
+// Collection: claims/{claimId}
+// Document ID: Unique claim identifier
+// Fields:
+//   - id: string (required, 1-50 chars, immutable)
+//   - itemId: string (required, 1-50 chars, immutable) - References ledger item
+//   - claimantId: string (required, 1-128 chars, immutable) - UID of claiming user
+//   - proof: string (required, 5-2000 chars) - Detailed proof of ownership
+//   - contact: string (required, 3-150 chars) - Contact info of claimant
+//   - status: string (required) - 'PENDING' | 'APPROVED' | 'REJECTED' | 'RESOLVED'
+//   - timestamp: number | timestamp (required, positive, immutable)
+//   - notes: string (optional, <= 1000 chars)
+//   - claimantName: string (optional, <= 100 chars)
+//   - proofUrl: string (optional, <= 500 chars)
+//   - updatedAt: timestamp | number (optional)
+//
+// Collection: users/{userId}
+// Document ID: Firebase Auth UID
+// Fields:
+//   - uid: string (required, matches userId, immutable)
+//   - email: string (required, valid email, <= 100 chars)
+//   - displayName: string (required, 1-100 chars)
+//   - role: string (required) - 'student' | 'faculty' | 'staff' | 'admin'
+//   - phoneNumber: string (optional, <= 30 chars)
+//   - photoURL: string (optional, <= 500 chars)
+//   - createdAt: timestamp (required, immutable)
+//   - updatedAt: timestamp (optional)
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions: Authentication & Authorization
+    // ===============================================================
+
+    // Check if the request is from an authenticated user
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if the user is the owner of a document keyed by userId
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Role-Based Access Control: Derives admin privileges strictly from verified custom claims or bootstrap campus admin emails
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.get('admin', false) == true ||
+        request.auth.token.get('role', '') == 'admin' ||
+        (request.auth.token.get('email_verified', false) == true &&
+         request.auth.token.get('email', '') in ['admin@campus.edu', 'lostandfound@campus.edu', 'godeskscout-admin@campus.edu'])
+      );
+    }
+
+    // Validate if the current authenticated caller is the original reporter
+    function isItemReporter(reporterField, contactField) {
+      return isAuthenticated() && (
+        request.auth.uid == reporterField ||
+        (request.auth.token != null && 'email' in request.auth.token && request.auth.token.email == contactField) ||
+        (request.auth.token != null && 'email' in request.auth.token && request.auth.token.email == reporterField)
+      );
+    }
+
+    // ===============================================================
+    // Helper Functions: Data Validation & Constraints
+    // ===============================================================
+
+    function hasRequiredFields(data, fields) {
+      return data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(data, fields) {
+      return data.keys().hasOnly(fields);
+    }
+
+    function isValidUrl(url) {
+      return url is string &&
+        (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidPositiveNumber(val) {
+      return (val is int || val is float || val is number) && val > 0;
+    }
+
+    // ===============================================================
+    // Domain Validator: Ledger Items
+    // ===============================================================
+
+    function isValidLedgerItem(data) {
+      return hasRequiredFields(data, [
+               'id', 'type', 'title', 'category', 'location',
+               'date', 'time', 'marks', 'desc', 'reporter',
+               'contact', 'status', 'timestamp'
+             ]) &&
+             hasOnlyAllowedFields(data, [
+               'id', 'type', 'title', 'category', 'location',
+               'date', 'time', 'marks', 'desc', 'reporter',
+               'contact', 'status', 'timestamp',
+               'dbId', 'claimantName', 'claimProof'
+             ]) &&
+             data.id is string && data.id.size() >= 1 && data.id.size() <= 20 &&
+             data.type is string && (data.type in ['LOST', 'FOUND']) &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 200 &&
+             data.category is string && (data.category in [
+               'Electronics', 'IDs & Cards', 'Stationery & Books',
+               'Keys & Accessories', 'Clothing & Bags'
+             ]) &&
+             data.location is string && data.location.size() >= 1 && data.location.size() <= 200 &&
+             data.date is string && data.date.size() >= 8 && data.date.size() <= 20 &&
+             data.time is string && data.time.size() <= 50 &&
+             data.marks is string && data.marks.size() <= 200 &&
+             data.desc is string && data.desc.size() >= 1 && data.desc.size() <= 2000 &&
+             data.reporter is string && data.reporter.size() >= 1 && data.reporter.size() <= 100 &&
+             data.contact is string && data.contact.size() >= 1 && data.contact.size() <= 150 &&
+             data.status is string && (data.status in [
+               'UNDER INVESTIGATION', 'FOUND', 'CLAIM PENDING', 'RETURNED'
+             ]) &&
+             isValidPositiveNumber(data.timestamp) &&
+             // Optional fields validation
+             (!('dbId' in data) || ((data.dbId is string && data.dbId.size() <= 100) || isValidPositiveNumber(data.dbId))) &&
+             (!('claimantName' in data) || (data.claimantName is string && data.claimantName.size() <= 100)) &&
+             (!('claimProof' in data) || (data.claimProof is string && data.claimProof.size() <= 2000));
+    }
+
+    // Enforce immutable fields on ledger update
+    function areLedgerImmutableFieldsUnchanged() {
+      return request.resource.data.id == resource.data.id &&
+             request.resource.data.type == resource.data.type &&
+             request.resource.data.date == resource.data.date &&
+             request.resource.data.timestamp == resource.data.timestamp;
+    }
+
+    // Allowed status transitions for reporter
+    function isValidReporterStatusTransition(prev, next) {
+      return prev == next ||
+             (prev in ['UNDER INVESTIGATION', 'FOUND'] && next in ['CLAIM PENDING', 'RETURNED']) ||
+             (prev == 'CLAIM PENDING' && next in ['UNDER INVESTIGATION', 'FOUND', 'RETURNED']);
+    }
+
+    // Ledger Create Rules
+    function canCreateLedgerItem() {
+      return isAuthenticated() &&
+             isValidLedgerItem(request.resource.data) &&
+             // Initial status must be 'UNDER INVESTIGATION' or 'FOUND'
+             request.resource.data.status in ['UNDER INVESTIGATION', 'FOUND'];
+    }
+
+    // Ledger Update Rules
+    function canUpdateLedgerItem() {
+      return isValidLedgerItem(request.resource.data) &&
+             areLedgerImmutableFieldsUnchanged() &&
+             (
+               // Case 1: Campus user submits a claim on an item.
+               // Can only transition status to 'CLAIM PENDING' and supply claimant metadata; cannot alter other item fields.
+               (
+                 isAuthenticated() &&
+                 resource.data.status in ['UNDER INVESTIGATION', 'FOUND'] &&
+                 request.resource.data.status == 'CLAIM PENDING' &&
+                 request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'claimantName', 'claimProof'])
+               ) ||
+               // Case 2: Original reporter updating item details or resolving the complaint
+               (
+                 isItemReporter(resource.data.reporter, resource.data.contact) &&
+                 request.resource.data.reporter == resource.data.reporter &&
+                 isValidReporterStatusTransition(resource.data.status, request.resource.data.status)
+               ) ||
+               // Case 3: Campus Admin
+               isAdmin()
+             );
+    }
+
+    // Ledger Delete Rules: Only original reporter or admin
+    function canDeleteLedgerItem() {
+      return isAuthenticated() && (
+        isAdmin() ||
+        isItemReporter(resource.data.reporter, resource.data.contact)
+      );
+    }
+
+    // ===============================================================
+    // Ledger Collection: Top-level & Artifact Nested Paths
+    // ===============================================================
+
+    // Primary Top-Level Ledger Collection
+    match /ledger/{docId} {
+      // 1. Read: Public read access for campus bulletin board (can also be restricted to isAuthenticated())
+      allow read: if true;
+
+      // 2. Create: Validates required schema, types, length limits, and initial status
+      allow create: if canCreateLedgerItem();
+
+      // 3. Update: Enforces valid state transitions and field immutability
+      allow update: if canUpdateLedgerItem();
+
+      // 4. Delete: Only original reporter or campus admin
+      allow delete: if canDeleteLedgerItem();
+    }
+
+    // Subcollection mirror under artifacts app namespace
+    match /artifacts/{appId}/public/data/ledger/{docId} {
+      allow read: if true;
+      allow create: if canCreateLedgerItem();
+      allow update: if canUpdateLedgerItem();
+      allow delete: if canDeleteLedgerItem();
+    }
+
+    // ===============================================================
+    // Claims Collection: Claims & Verification Proof
+    // ===============================================================
+
+    function isValidClaim(data) {
+      return hasRequiredFields(data, [
+               'id', 'itemId', 'claimantId', 'proof', 'contact', 'status', 'timestamp'
+             ]) &&
+             hasOnlyAllowedFields(data, [
+               'id', 'itemId', 'claimantId', 'proof', 'contact', 'status', 'timestamp',
+               'notes', 'claimantName', 'proofUrl', 'updatedAt'
+             ]) &&
+             data.id is string && data.id.size() >= 1 && data.id.size() <= 50 &&
+             data.itemId is string && data.itemId.size() >= 1 && data.itemId.size() <= 50 &&
+             data.claimantId is string && data.claimantId.size() >= 1 && data.claimantId.size() <= 128 &&
+             data.proof is string && data.proof.size() >= 5 && data.proof.size() <= 2000 &&
+             data.contact is string && data.contact.size() >= 3 && data.contact.size() <= 150 &&
+             data.status is string && (data.status in ['PENDING', 'APPROVED', 'REJECTED', 'RESOLVED']) &&
+             (isValidPositiveNumber(data.timestamp) || data.timestamp is timestamp) &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000)) &&
+             (!('claimantName' in data) || (data.claimantName is string && data.claimantName.size() <= 100)) &&
+             (!('proofUrl' in data) || isValidUrl(data.proofUrl)) &&
+             (!('updatedAt' in data) || (isValidPositiveNumber(data.updatedAt) || data.updatedAt is timestamp));
+    }
+
+    match /claims/{claimId} {
+      // User Data Separation: Read restricted to claimant, item reporter, or admin
+      allow read: if isAuthenticated() && (
+        resource.data.claimantId == request.auth.uid ||
+        isAdmin() ||
+        (
+          exists(/databases/$(database)/documents/ledger/$(resource.data.itemId)) &&
+          get(/databases/$(database)/documents/ledger/$(resource.data.itemId)).data.reporter == request.auth.uid
+        )
+      );
+
+      // Create: Authenticated claimant submitting proof with required fields
+      allow create: if isAuthenticated() &&
+        isValidClaim(request.resource.data) &&
+        request.resource.data.id == claimId &&
+        request.resource.data.claimantId == request.auth.uid &&
+        request.resource.data.status == 'PENDING' &&
+        exists(/databases/$(database)/documents/ledger/$(request.resource.data.itemId));
+
+      // Update: Claimant updating their pending claim or Reporter/Admin updating status
+      allow update: if isAuthenticated() &&
+        isValidClaim(request.resource.data) &&
+        (
+          // Claimant updating pending claim proof or contact
+          (
+            resource.data.claimantId == request.auth.uid &&
+            resource.data.status == 'PENDING' &&
+            request.resource.data.status == 'PENDING' &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['proof', 'contact', 'notes', 'updatedAt'])
+          ) ||
+          // Item Reporter reviewing claim
+          (
+            exists(/databases/$(database)/documents/ledger/$(resource.data.itemId)) &&
+            get(/databases/$(database)/documents/ledger/$(resource.data.itemId)).data.reporter == request.auth.uid &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'notes', 'updatedAt'])
+          ) ||
+          // Campus Admin
+          isAdmin()
+        );
+
+      // Delete: Claimant can delete pending claim; Admin can delete any claim
+      allow delete: if isAuthenticated() && (
+        (resource.data.claimantId == request.auth.uid && resource.data.status == 'PENDING') ||
+        isAdmin()
+      );
+    }
+
+    // ===============================================================
+    // Users Collection: Profiles & Access Roles
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasRequiredFields(data, ['uid', 'email', 'displayName', 'role', 'createdAt']) &&
+             hasOnlyAllowedFields(data, [
+               'uid', 'email', 'displayName', 'role', 'createdAt',
+               'phoneNumber', 'photoURL', 'updatedAt'
+             ]) &&
+             data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 &&
+             isValidEmail(data.email) && data.email.size() <= 100 &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100 &&
+             data.role is string && (data.role in ['student', 'faculty', 'staff', 'admin']) &&
+             (data.createdAt is timestamp || isValidPositiveNumber(data.createdAt)) &&
+             (!('phoneNumber' in data) || (data.phoneNumber is string && data.phoneNumber.size() <= 30)) &&
+             (!('photoURL' in data) || isValidUrl(data.photoURL)) &&
+             (!('updatedAt' in data) || (data.updatedAt is timestamp || isValidPositiveNumber(data.updatedAt)));
+    }
+
+    match /users/{userId} {
+      // User Data Separation: Never allow public reads; only owner or admin can read private profile
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Create: Users cannot self-escalate to 'admin' role
+      allow create: if isAuthenticated() &&
+        isOwner(userId) &&
+        isValidUser(request.resource.data) &&
+        request.resource.data.uid == userId &&
+        (
+          request.resource.data.role in ['student', 'faculty', 'staff'] ||
+          isAdmin()
+        );
+
+      // Update: Users cannot update their own role or tamper with uid / createdAt
+      allow update: if isAuthenticated() &&
+        isValidUser(request.resource.data) &&
+        (
+          (
+            isOwner(userId) &&
+            request.resource.data.role == resource.data.role &&
+            request.resource.data.uid == resource.data.uid &&
+            request.resource.data.createdAt == resource.data.createdAt
+          ) ||
+          isAdmin()
+        );
+
+      // Delete: Owner or Admin
+      allow delete: if isAuthenticated() && (isOwner(userId) || isAdmin());
+    }
+
+    // ===============================================================
+    // Default Deny Rule
+    // ===============================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

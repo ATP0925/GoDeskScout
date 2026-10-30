@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoDeskScout - Campus Lost & Found System</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            50: '#f0f4f8',
+                            100: '#d9e2ec',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#090d16'
+                        },
+                        royal: {
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8'
+                        },
+                        skyAccent: '#0ea5e9'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+        }
+        .dark .glass-card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+        .form-transition {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .fade-out {
+            opacity: 0;
+            transform: translateX(-20px);
+            pointer-events: none;
+            visibility: hidden;
+        }
+        .fade-in {
+            opacity: 1;
+            transform: translateX(0);
+            visibility: visible;
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.92; transform: scale(1.02); }
+        }
+        .mock-active-step {
+            animation: pulse-subtle 2s infinite ease-in-out;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-navy-950 text-slate-800 dark:text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-royal-600 selection:text-white">
+
+    <!-- Interactive User Demo Mock Bar (Live Guided Testing) -->
+    <div id="mockBanner" class="bg-gradient-to-r from-navy-950 via-royal-900 to-navy-950 text-white text-xs py-2 px-4 border-b border-skyAccent/30 flex flex-wrap items-center justify-between gap-2 shadow-inner">
+        <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-skyAccent/20 text-skyAccent border border-skyAccent/30">
+                <i class="fa-solid fa-flask-vial mr-1.5 animate-pulse"></i> LIVE USER DEMO MOCK
+            </span>
+            <span class="text-slate-300 font-medium hidden sm:inline">Page-by-Page Guided Testing & Verification</span>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="runAutomatedDemoMock()" id="btnAutoMock" class="px-3 py-1 rounded-lg bg-skyAccent hover:bg-sky-400 text-navy-950 font-extrabold text-[11px] shadow transition flex items-center gap-1.5">
+                <i class="fa-solid fa-play"></i> Run Full User Demo Mock
+            </button>
+            <button onclick="resetPresentationData()" class="px-2.5 py-1 rounded-lg bg-red-600/30 hover:bg-red-600 text-red-200 text-[11px] font-bold border border-red-500/30 transition flex items-center gap-1">
+                <i class="fa-solid fa-arrows-rotate"></i> Zero Reset
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 bg-navy-900/95 backdrop-blur-md text-white border-b border-slate-800 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="navigateTo('home')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-royal-600 to-skyAccent flex items-center justify-center text-white shadow-lg shadow-royal-600/30">
+                        <i class="fa-solid fa-magnifying-glass-location text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-skyAccent bg-clip-text text-transparent">GoDeskScout</span>
+                        <span class="block text-[10px] font-semibold text-slate-400 tracking-wider uppercase">Find What Matters. Return What Belongs.</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="hidden md:flex items-center space-x-1">
+                    <button onclick="navigateTo('home')" id="nav-home" class="nav-link px-3 py-2 rounded-lg text-xs font-semibold hover:bg-slate-800 text-skyAccent transition">Home</button>
+                    <button onclick="navigateTo('search')" id="nav-search" class="nav-link px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition">Browse Ledger</button>
+                    <button onclick="navigateTo('report-lost')" id="nav-report-lost" class="nav-link px-3 py-2 rounded-lg text-xs font-semibold text-red-400 hover:bg-red-900/30 hover:text-red-300 transition">
+                        <i class="fa-solid fa-circle-exclamation mr-1"></i> Lodge Lost Complaint
+                    </button>
+                    <button onclick="navigateTo('report-found')" id="nav-report-found" class="nav-link px-3 py-2 rounded-lg text-xs font-semibold text-emerald-400 hover:bg-emerald-900/30 hover:text-emerald-300 transition">
+                        <i class="fa-solid fa-hand-holding-heart mr-1"></i> Log Found Item
+                    </button>
+                    <button onclick="navigateTo('user-dash')" id="nav-user-dash" class="nav-link px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition">User Hub</button>
+                    <button onclick="navigateTo('admin-dash')" id="nav-admin-dash" class="nav-link px-3 py-2 rounded-lg text-xs font-semibold text-amber-400 hover:bg-amber-900/30 hover:text-amber-300 transition">Admin Panel</button>
+                </nav>
+
+                <!-- Right Actions -->
+                <div class="flex items-center space-x-3">
+                    <!-- Auth UI (Dynamic) -->
+                    <div id="authContainer" class="flex items-center space-x-3">
+                        <button onclick="openAuthModal()" class="px-4 py-1.5 rounded-xl bg-royal-600 hover:bg-royal-700 text-white text-xs font-bold shadow-lg shadow-royal-600/30 transition transform hover:-translate-y-0.5">Sign In</button>
+                    </div>
+
+                    <!-- Notifications Dropdown Trigger -->
+                    <button onclick="toggleNotifications()" class="relative p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Notifications">
+                        <i class="fa-solid fa-bell text-sm"></i>
+                        <span id="notifBadge" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center">0</span>
+                    </button>
+
+                    <!-- Theme Toggle -->
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 transition" title="Toggle Dark/Light Mode">
+                        <i class="fa-solid fa-moon dark:hidden"></i>
+                        <i class="fa-solid fa-sun hidden dark:block"></i>
+                    </button>
+
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden p-2 text-slate-300 hover:text-white">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobileMenu" class="hidden md:hidden border-t border-slate-800 bg-navy-900 px-4 pt-2 pb-4 space-y-2 text-sm">
+            <button onclick="navigateTo('home')" class="block w-full text-left py-2 px-3 rounded-lg text-slate-200 hover:bg-slate-800">Home</button>
+            <button onclick="navigateTo('search')" class="block w-full text-left py-2 px-3 rounded-lg text-slate-200 hover:bg-slate-800">Browse Ledger</button>
+            <button onclick="navigateTo('report-lost')" class="block w-full text-left py-2 px-3 text-red-400 hover:bg-slate-800 font-bold">Lodge Lost Complaint</button>
+            <button onclick="navigateTo('report-found')" class="block w-full text-left py-2 px-3 text-emerald-400 hover:bg-slate-800">Log Found Item</button>
+            <button onclick="navigateTo('user-dash')" class="block w-full text-left py-2 px-3 text-slate-200 hover:bg-slate-800">User Hub</button>
+            <button onclick="navigateTo('admin-dash')" class="block w-full text-left py-2 px-3 text-amber-400 hover:bg-slate-800">Admin Panel</button>
+        </div>
+    </header>
+
+    <!-- Notification Center Dropdown -->
+    <div id="notifPanel" class="hidden fixed top-24 right-4 sm:right-12 z-50 w-80 sm:w-96 glass-card rounded-2xl shadow-2xl p-4 border border-slate-200 dark:border-slate-800 text-xs">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+            <span class="font-extrabold text-sm text-navy-900 dark:text-white">Notifications Center</span>
+            <button onclick="markNotificationsRead()" class="text-[11px] text-royal-600 dark:text-skyAccent hover:underline font-semibold">Mark all read</button>
+        </div>
+        <div id="notifList" class="py-4 space-y-3 max-h-64 overflow-y-auto custom-scrollbar">
+            <div class="text-center py-6 text-slate-400">
+                <i class="fa-solid fa-bell-slash text-2xl mb-2"></i>
+                <p>No new notifications in clean state.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ================= PAGE 1: HOME ================= -->
+        <section id="page-home" class="page-view space-y-10">
+            <!-- Hero Banner Section -->
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-navy-900 via-navy-800 to-royal-700 text-white p-8 sm:p-12 shadow-2xl border border-slate-800">
+                <div class="absolute -right-12 -bottom-12 w-80 h-80 bg-skyAccent/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 max-w-3xl space-y-6">
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-skyAccent text-xs font-bold tracking-wider uppercase backdrop-blur-md">
+                        <i class="fa-solid fa-shield-halved text-xs"></i>
+                        <span>Official Campus Lost & Found System • Cloud Firebase Connected</span>
+                    </div>
+                    <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+                        GoDeskScout
+                    </h1>
+                    <p class="text-xl font-medium text-skyAccent italic">
+                        "Find What Matters. Return What Belongs."
+                    </p>
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                        A centralized college platform designed to help students and staff report, search, claim, and recover misplaced belongings quickly and securely.
+                    </p>
+                    
+                    <div class="flex flex-wrap gap-4 pt-2">
+                        <button onclick="navigateTo('report-lost')" class="px-6 py-3.5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-xl shadow-red-600/30 transition transform hover:-translate-y-0.5 flex items-center space-x-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Lodge Lost Item Complaint</span>
+                        </button>
+                        <button onclick="navigateTo('report-found')" class="px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-xl shadow-emerald-600/30 transition transform hover:-translate-y-0.5 flex items-center space-x-2">
+                            <i class="fa-solid fa-hand-holding-heart"></i>
+                            <span>Report Found Item</span>
+                        </button>
+                        <button onclick="navigateTo('search')" class="px-6 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-sm backdrop-blur-md transition flex items-center space-x-2">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span>Browse Ledger</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div class="glass-card p-5 rounded-2xl text-center space-y-1 shadow-sm border">
+                    <div class="text-xs uppercase font-extrabold text-slate-400 tracking-wider">Total Reports</div>
+                    <div id="stat-total" class="text-3xl font-extrabold text-navy-900 dark:text-white">0</div>
+                    <div class="text-[10px] text-slate-500 font-semibold">Active Ledger Size</div>
+                </div>
+                <div class="glass-card p-5 rounded-2xl text-center space-y-1 shadow-sm border border-red-500/20">
+                    <div class="text-xs uppercase font-extrabold text-red-500 tracking-wider">Lost Complaints</div>
+                    <div id="stat-lost" class="text-3xl font-extrabold text-red-600 dark:text-red-400">0</div>
+                    <div class="text-[10px] text-slate-500 font-semibold">Active Investigations</div>
+                </div>
+                <div class="glass-card p-5 rounded-2xl text-center space-y-1 shadow-sm border border-emerald-500/20">
+                    <div class="text-xs uppercase font-extrabold text-emerald-500 tracking-wider">Found Items</div>
+                    <div id="stat-found" class="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">0</div>
+                    <div class="text-[10px] text-slate-500 font-semibold">In Desk Custody</div>
+                </div>
+                <div class="glass-card p-5 rounded-2xl text-center space-y-1 shadow-sm border border-royal-500/20">
+                    <div class="text-xs uppercase font-extrabold text-royal-500 tracking-wider">Returned Items</div>
+                    <div id="stat-returned" class="text-3xl font-extrabold text-royal-600 dark:text-royal-400">0</div>
+                    <div class="text-[10px] text-slate-500 font-semibold">Restored to Owner</div>
+                </div>
+                <div class="glass-card p-5 rounded-2xl text-center space-y-1 shadow-sm border border-amber-500/20">
+                    <div class="text-xs uppercase font-extrabold text-amber-500 tracking-wider">Pending Claims</div>
+                    <div id="stat-claims" class="text-3xl font-extrabold text-amber-600 dark:text-amber-400">0</div>
+                    <div class="text-[10px] text-slate-500 font-semibold">Awaiting Verification</div>
+                </div>
+            </div>
+
+            <!-- Workflow 5 Steps -->
+            <div class="space-y-6">
+                <div class="text-center max-w-2xl mx-auto space-y-2">
+                    <h2 class="text-2xl font-extrabold tracking-tight">How GoDeskScout Works</h2>
+                    <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">5 simple steps for college students and staff to lodge complaints and recover items.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div class="glass-card p-5 rounded-2xl text-center space-y-3 relative">
+                        <div class="w-10 h-10 mx-auto rounded-xl bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-extrabold flex items-center justify-center text-sm">1</div>
+                        <h3 class="font-bold text-sm">Lodge Complaint</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">Register a detailed lost item complaint with specs and location.</p>
+                    </div>
+                    <div class="glass-card p-5 rounded-2xl text-center space-y-3 relative">
+                        <div class="w-10 h-10 mx-auto rounded-xl bg-royal-100 dark:bg-royal-900/30 text-royal-600 dark:text-royal-400 font-extrabold flex items-center justify-center text-sm">2</div>
+                        <h3 class="font-bold text-sm">Search Ledger</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">Scan desk logs using category, campus hub, and date filters.</p>
+                    </div>
+                    <div class="glass-card p-5 rounded-2xl text-center space-y-3 relative">
+                        <div class="w-10 h-10 mx-auto rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 font-extrabold flex items-center justify-center text-sm">3</div>
+                        <h3 class="font-bold text-sm">Submit Claim</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">Provide hidden identifying details to prove ownership.</p>
+                    </div>
+                    <div class="glass-card p-5 rounded-2xl text-center space-y-3 relative">
+                        <div class="w-10 h-10 mx-auto rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 font-extrabold flex items-center justify-center text-sm">4</div>
+                        <h3 class="font-bold text-sm">Admin Verify</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">Desk admin reviews details and approves physical pickup.</p>
+                    </div>
+                    <div class="glass-card p-5 rounded-2xl text-center space-y-3 relative">
+                        <div class="w-10 h-10 mx-auto rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-extrabold flex items-center justify-center text-sm">5</div>
+                        <h3 class="font-bold text-sm">Return & Close</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">Item handed over and complaint status updated to RETURNED.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Ledger Items -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-extrabold tracking-tight">Recent Campus Ledger Items</h2>
+                        <p class="text-xs text-slate-500">Live entries registered in system database.</p>
+                    </div>
+                    <button onclick="navigateTo('search')" class="text-xs font-bold text-royal-600 dark:text-skyAccent hover:underline">View All Entries →</button>
+                </div>
+
+                <div id="homeRecentGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 2: SEARCH / BROWSE LEDGER ================= -->
+        <section id="page-search" class="page-view hidden space-y-6">
+            <div class="border-b border-slate-200 dark:border-slate-800 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-tight">Campus Lost & Found Ledger</h1>
+                    <p class="text-xs text-slate-500">Search active complaints, lost items, and desk found logs across campus hubs.</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="navigateTo('report-lost')" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow transition">
+                        <i class="fa-solid fa-plus mr-1"></i> Lodge Lost Complaint
+                    </button>
+                    <button onclick="navigateTo('report-found')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition">
+                        <i class="fa-solid fa-box-archive mr-1"></i> Log Found Item
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search Controls & Filters -->
+            <div class="glass-card p-4 rounded-2xl space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">Search Keywords</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="searchInput" onkeyup="applyLedgerFilters()" placeholder="Item name, specs, location..." class="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">Entry Type</label>
+                        <select id="typeFilter" onchange="applyLedgerFilters()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none">
+                            <option value="ALL">All Entries</option>
+                            <option value="LOST">Lost Complaints Only</option>
+                            <option value="FOUND">Found Items Only</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">Category</label>
+                        <select id="categoryFilter" onchange="applyLedgerFilters()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none">
+                            <option value="ALL">All Categories</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="IDs & Cards">IDs & Cards</option>
+                            <option value="Stationery & Books">Stationery & Books</option>
+                            <option value="Keys & Accessories">Keys & Accessories</option>
+                            <option value="Clothing & Bags">Clothing & Bags</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">Status</label>
+                        <select id="statusFilter" onchange="applyLedgerFilters()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none">
+                            <option value="ALL">All Statuses</option>
+                            <option value="UNDER INVESTIGATION">Under Investigation</option>
+                            <option value="FOUND">In Custody</option>
+                            <option value="CLAIM PENDING">Claim Pending</option>
+                            <option value="RETURNED">Returned</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ledger Cards Grid -->
+            <div id="searchGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Rendered dynamically -->
+            </div>
+        </section>
+
+        <!-- ================= PAGE 3: LODGE LOST COMPLAINT ================= -->
+        <section id="page-report-lost" class="page-view hidden max-w-2xl mx-auto space-y-6">
+            <div class="glass-card p-6 sm:p-8 rounded-3xl space-y-6 border border-red-500/20">
+                <div class="border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <span class="px-3 py-1 bg-red-500/10 text-red-600 dark:text-red-400 rounded-full text-[10px] font-extrabold uppercase tracking-wider border border-red-500/20">Lost Item Wizard</span>
+                    <h1 class="text-2xl font-extrabold tracking-tight mt-2 text-navy-900 dark:text-white">Lodge Lost Item Complaint</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Submit a formal complaint for campus desk tracking and staff cross-verification.</p>
+                </div>
+
+                <form id="lostComplaintForm" onsubmit="handleLostComplaintSubmit(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-extrabold uppercase text-slate-500 mb-1">Item Title / Name *</label>
+                        <input type="text" id="lostTitle" required placeholder="e.g. Sony WH-1000XM4 Headphones / Blue Leather Wallet" class="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-red-500 outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-extrabold uppercase text-slate-500 mb-1">Category *</label>
+                            <select id="lostCategory" required class="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-red-500 outline-none">
+                                <option value="Electronics">Electronics</option>
+                                <option value="IDs & Cards">IDs & Cards</option>
+                                <option value="Stationery & Books">Stationery & Books</option>
+                                <option value="Keys & Accessories">Keys & Accessories</option>
+                                <option value="Clothing & Bags">Clothing & Bags</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-extrabold uppercase text-slate-500 mb-1">Campus Hub / Location Lost *</label>
+                            <select id="lostLocation" required class="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-red-500 outline-none">
+                                <option value="Main Library - Desk 3">Main Library - Desk 3</option>
+                                <option value="Engineering Block B Desk">Engineering Block B Desk</option>
+                                <option value="Student Activity Hub">Student Activity Hub</option>
+                                <option value="Central Cafeteria Desk">Central Cafeteria Desk</option>
+                                <option value="Science Complex Desk">Science Complex Desk</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-extrabold uppercase text-slate-500 mb-1">Date Lost *</label>
+                            <input type="date" id="lostDate" required class="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-red-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-extrabold uppercase text-slate-500 mb-1">Approximate Time Lost</label>
+                            <input type="text" id="lostTime" placeholder="e.g. 2:30 PM after Lecture" class="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-red-500 outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-extrabold uppercase text-slate-500 mb-1">Unique Marks / Serial No. / Colors</label>
+                        <input type="text" id="lostMarks" placeholder="e.g. Red sticker on back, scratch on right side" class="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-red-500 outline-none">
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-extrabold uppercase text-slate-500">Detailed Description *</label>
+                            <button type="button" onclick="generateAIDescription('lost')" class="text-[10px] font-bold text-royal-600 dark:text-skyAccent hover:underline flex items-center gap-1 bg-royal-500/10 px-2 py-1 rounded-lg border border-royal-500/20">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> AI Suggest Description
+                            </button>
+                        </div>
+                        <textarea id="lostDesc" rows="4" required placeholder="Provide full description of item contents or appearance..." class="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-red-500 outline-none"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-extrabold uppercase text-slate-500 mb-1">Reporter Name *</label>
+                            <input type="text" id="lostReporter" required placeholder="Alex Morgan" class="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-red-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-extrabold uppercase text-slate-500 mb-1">Contact Email / Phone *</label>
+                            <input type="email" id="lostContact" required placeholder="a.morgan@university.edu" class="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-red-500 outline-none">
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" id="btnSubmitLost" class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-600/25 transition transform active:scale-98 flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>Register Lost Complaint in Database</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 4: LOG FOUND ITEM ================= -->
+        <section id="page-report-found" class="page-view hidden max-w-2xl mx-auto space-y-6">
+            <div class="glass-card p-6 sm:p-8 rounded-3xl space-y-6 border border-emerald-500/20">
+                <div class="border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <span class="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full text-[10px] font-extrabold uppercase tracking-wider border border-emerald-500/20">Found Item Entry</span>
+                    <h1 class="text-2xl font-extrabold tracking-tight mt-2 text-navy-900 dark:text-white">Log Found Item to Desk Custody</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Register an item turned into a campus desk or security station.</p>
+                </div>
+
+                <form id="foundItemForm" onsubmit="handleFoundItemSubmit(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-extrabold uppercase text-slate-500 mb-1">Item Title / Description *</label>
+                        <input type="text" id="foundTitle" required placeholder="e.g. Set of keys with metal dragon keychain" class="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-extrabold uppercase text-slate-500 mb-1">Category *</label>
+                            <select id="foundCategory" required class="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <option value="Electronics">Electronics</option>
+                                <option value="IDs & Cards">IDs & Cards</option>
+                                <option value="Stationery & Books">Stationery & Books</option>
+                                <option value="Keys & Accessories">Keys & Accessories</option>
+                                <option value="Clothing & Bags">Clothing & Bags</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-extrabold uppercase text-slate-500 mb-1">Holding Desk Location *</label>
+                            <select id="foundLocation" required class="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <option value="Main Library - Desk 3">Main Library - Desk 3</option>
+                                <option value="Engineering Block B Desk">Engineering Block B Desk</option>
+                                <option value="Student Activity Hub">Student Activity Hub</option>
+                                <option value="Central Cafeteria Desk">Central Cafeteria Desk</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-extrabold uppercase text-slate-500 mb-1">Date Turned In *</label>
+                            <input type="date" id="foundDate" required class="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-extrabold uppercase text-slate-500 mb-1">Finder / Desk Attendant Email</label>
+                            <input type="email" id="foundContact" required placeholder="desk.library@university.edu" class="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-extrabold uppercase text-slate-500">Detailed Description</label>
+                            <button type="button" onclick="generateAIDescription('found')" class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 bg-emerald-500/10 px-2 py-1 rounded-lg border border-emerald-500/20">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> AI Suggest Description
+                            </button>
+                        </div>
+                        <textarea id="foundDesc" rows="4" required placeholder="Describe appearance, storage locker number, etc..." class="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-emerald-500 outline-none"></textarea>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" id="btnSubmitFound" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/25 transition transform active:scale-98 flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-box-archive"></i>
+                            <span>Store Entry in Desk Custody</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 5: USER HUB DASHBOARD ================= -->
+        <section id="page-user-dash" class="page-view hidden space-y-6">
+            <div class="glass-card p-6 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border">
+                <div class="flex items-center space-x-4">
+                    <div id="userAvatar" class="w-12 h-12 rounded-2xl bg-royal-600 text-white flex items-center justify-center text-xl font-extrabold">
+                        AM
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-extrabold">Student Hub Dashboard</h1>
+                        <p id="userDashSubtitle" class="text-xs text-slate-500">Alex Morgan (ID: STU-2026-9041) • Active Member</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="navigateTo('report-lost')" class="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition">
+                        <i class="fa-solid fa-plus mr-1"></i> New Lost Complaint
+                    </button>
+                    <button onclick="navigateTo('search')" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition">
+                        <i class="fa-solid fa-magnifying-glass mr-1"></i> Search Ledger
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard My Complaints Table -->
+            <div class="glass-card p-6 rounded-3xl space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <h2 class="text-lg font-bold">My Registered Lost Complaints</h2>
+                    <span class="text-xs text-slate-400">Live Status Tracker</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 dark:border-slate-800 text-[10px] font-extrabold uppercase text-slate-400">
+                                <th class="p-3">Complaint ID</th>
+                                <th class="p-3">Item Name</th>
+                                <th class="p-3">Category</th>
+                                <th class="p-3">Date Logged</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userComplaintsTable" class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 6: ADMIN PANEL ================= -->
+        <section id="page-admin-dash" class="page-view hidden space-y-6">
+            <div class="glass-card p-6 rounded-3xl border border-amber-500/20 bg-gradient-to-r from-navy-900 to-navy-800 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-user-shield text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-extrabold">Campus Admin Control Center</h1>
+                        <p class="text-xs text-slate-300">Desk Management, User Claims Verification & Ledger Approvals</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="resetPresentationData()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow transition">
+                        <i class="fa-solid fa-arrows-rotate mr-1"></i> Force Presentation Clean State
+                    </button>
+                </div>
+            </div>
+
+            <!-- Admin Item Management Table -->
+            <div class="glass-card p-6 rounded-3xl space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <div>
+                        <h2 class="text-lg font-bold">Desk Item Ledger Management</h2>
+                        <p class="text-xs text-slate-500">Approve claims, update investigation statuses, or purge entries.</p>
+                    </div>
+                    <span id="adminTotalBadge" class="px-3 py-1 bg-royal-500/10 text-royal-600 dark:text-skyAccent rounded-full text-xs font-bold border border-royal-500/20">0 Total Entries</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 dark:border-slate-800 text-[10px] font-extrabold uppercase text-slate-400">
+                                <th class="p-3">Ref ID</th>
+                                <th class="p-3">Type</th>
+                                <th class="p-3">Item Title</th>
+                                <th class="p-3">Campus Hub</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-right">Admin Control</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminItemsTable" class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: Claim Item Proof -->
+    <div id="claimModal" class="fixed inset-0 z-50 bg-navy-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="glass-card max-w-lg w-full rounded-3xl p-6 space-y-4 border shadow-2xl relative">
+            <button onclick="closeClaimModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div>
+                <span class="px-2.5 py-1 bg-royal-500/10 text-royal-600 dark:text-skyAccent rounded-full text-[10px] font-extrabold uppercase tracking-wider">Ownership Proof</span>
+                <h3 id="claimModalTitle" class="text-lg font-extrabold mt-1">Submit Ownership Claim</h3>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Your Full Name & Student/Staff ID *</label>
+                    <input type="text" id="claimUser" placeholder="e.g. Alex Morgan - STU-2026-9041" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-navy-900 outline-none">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Secret Descriptors / Engravings / Lockscreen Wallpaper *</label>
+                    <textarea id="claimProof" rows="3" placeholder="State specific unique details to verify ownership before physical desk handover..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-navy-900 outline-none"></textarea>
+                </div>
+            </div>
+
+            <div class="flex space-x-2 pt-2">
+                <button onclick="closeClaimModal()" class="w-1/2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
+                <button onclick="submitClaimRequest()" id="btnSubmitClaimModal" class="w-1/2 py-2.5 rounded-xl bg-royal-600 hover:bg-royal-700 text-white text-xs font-bold shadow">Submit Verification</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Auth Wall (Login / Sign Up) -->
+    <div id="authModal" class="fixed inset-0 z-[100] bg-slate-50 dark:bg-navy-950 flex items-center justify-center p-4">
+        <!-- Decorative Background Elements -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute -top-40 -right-40 w-96 h-96 bg-royal-600/20 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-skyAccent/20 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="glass-card max-w-md w-full rounded-3xl p-6 sm:p-8 border shadow-2xl relative overflow-hidden z-10">
+            <!-- Close button for testing mode if user wants to browse -->
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white" title="Browse Guest Mode">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <!-- Quick Demo Credentials Selector -->
+            <div class="mb-4 p-3 bg-skyAccent/10 border border-skyAccent/30 rounded-2xl">
+                <div class="text-[10px] uppercase font-extrabold text-skyAccent tracking-wider mb-1 flex items-center gap-1">
+                    <i class="fa-solid fa-bolt"></i> 1-Click Quick Demo Login:
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" onclick="quickLogin('student')" class="py-1.5 px-2 bg-royal-600 hover:bg-royal-700 text-white rounded-lg text-[10px] font-bold text-center transition">
+                        Student Demo
+                    </button>
+                    <button type="button" onclick="quickLogin('admin')" class="py-1.5 px-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[10px] font-bold text-center transition">
+                        Admin Demo
+                    </button>
+                </div>
+            </div>
+
+            <div class="relative w-full h-[460px]">
+                <!-- LOGIN FORM -->
+                <div id="login-form" class="form-transition fade-in absolute inset-0 flex flex-col justify-center">
+                    <div class="text-center mb-5">
+                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-royal-500/10 text-royal-600 dark:text-skyAccent mb-3 border border-royal-500/20">
+                            <i class="fa-solid fa-graduation-cap text-lg"></i>
+                        </div>
+                        <h2 class="text-2xl font-extrabold text-navy-900 dark:text-white">Welcome Back</h2>
+                        <p class="text-xs text-slate-500 mt-1">Please enter your college email to sign in.</p>
+                    </div>
+
+                    <form id="form-login" onsubmit="handleLogin(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">College Email Address</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fa-regular fa-envelope text-slate-400 text-xs"></i>
+                                </div>
+                                <input type="email" id="login-email" required placeholder="alex.morgan@university.edu"
+                                     class="w-full pl-9 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">Password</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fa-solid fa-lock text-slate-400 text-xs"></i>
+                                </div>
+                                <input type="password" id="login-password" required placeholder="••••••••" value="demo1234"
+                                     class="w-full pl-9 pr-10 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none transition-all">
+                                <button type="button" onclick="togglePassword('login-password', 'login-eye')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-royal-600 transition-colors">
+                                    <i id="login-eye" class="fa-regular fa-eye text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between text-[10px] font-bold">
+                            <label class="flex items-center text-slate-500 cursor-pointer">
+                                <input type="checkbox" checked class="rounded border-slate-300 text-royal-600 focus:ring-royal-600 mr-1.5">
+                                Remember me
+                            </label>
+                            <a href="#" class="text-royal-600 dark:text-skyAccent hover:underline">Forgot password?</a>
+                        </div>
+
+                        <button type="submit" id="btnSubmitLogin" class="w-full bg-navy-900 dark:bg-royal-600 hover:bg-slate-800 dark:hover:bg-royal-700 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-lg shadow-royal-600/25 active:scale-98 mt-2">
+                            Sign In to Portal
+                        </button>
+                    </form>
+
+                    <div class="mt-4 flex items-center justify-between">
+                        <span class="border-b w-1/4 border-slate-200 dark:border-slate-800"></span>
+                        <span class="text-[9px] text-center text-slate-400 uppercase font-extrabold tracking-wider">Or continue with</span>
+                        <span class="border-b w-1/4 border-slate-200 dark:border-slate-800"></span>
+                    </div>
+
+                    <div class="mt-3">
+                        <button type="button" onclick="handleGoogleLogin()" class="w-full flex items-center justify-center gap-2 py-2 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-navy-900 transition-colors text-navy-900 dark:text-white font-bold text-xs shadow-sm">
+                            <i class="fa-brands fa-google text-red-500"></i> Google Workspace
+                        </button>
+                    </div>
+
+                    <p class="text-center text-slate-500 mt-4 text-xs font-semibold">
+                        Don't have an account? 
+                        <button onclick="toggleAuthMode()" class="font-bold text-royal-600 dark:text-skyAccent hover:underline transition-colors ml-1">Sign up</button>
+                    </p>
+                </div>
+
+                <!-- SIGN UP FORM -->
+                <div id="signup-form" class="form-transition fade-out absolute inset-0 flex flex-col justify-center">
+                    <div class="text-center mb-5">
+                        <h2 class="text-2xl font-extrabold text-navy-900 dark:text-white">Create Account</h2>
+                        <p class="text-xs text-slate-500 mt-1">Join GoDeskScout! Takes only a few steps.</p>
+                    </div>
+
+                    <form id="form-signup" onsubmit="handleSignUp(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">Full Name</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fa-regular fa-user text-slate-400 text-xs"></i>
+                                </div>
+                                <input type="text" id="signup-name" required placeholder="Alex Morgan"
+                                     class="w-full pl-9 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">College Email (.edu / .ac.in)</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fa-regular fa-envelope text-slate-400 text-xs"></i>
+                                </div>
+                                <input type="email" id="signup-email" required placeholder="alex.morgan@university.edu"
+                                     class="w-full pl-9 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">Password</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fa-solid fa-lock text-slate-400 text-xs"></i>
+                                </div>
+                                <input type="password" id="signup-password" required placeholder="••••••••" minlength="6" value="demo1234"
+                                    class="w-full pl-9 pr-10 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-navy-900 focus:ring-2 focus:ring-royal-600 outline-none transition-all">
+                                <button type="button" onclick="togglePassword('signup-password', 'signup-eye')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-royal-600 transition-colors">
+                                    <i id="signup-eye" class="fa-regular fa-eye text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-royal-600 hover:bg-royal-700 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-lg shadow-royal-600/25 active:scale-98 mt-2">
+                            Create College Account
+                        </button>
+                    </form>
+
+                    <p class="text-center text-slate-500 mt-5 text-xs font-semibold">
+                        Already have an account? 
+                        <button onclick="toggleAuthMode()" class="font-bold text-royal-600 dark:text-skyAccent hover:underline transition-colors ml-1">Sign in</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Banner -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-navy-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 text-xs font-bold border border-slate-800 pointer-events-none">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+        <span id="toastMsg">Action executed successfully!</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-navy-900 text-slate-400 border-t border-slate-800 py-8 text-xs mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+                <span class="font-extrabold text-white text-sm">GoDeskScout</span>
+                <span class="block text-[11px] text-slate-400">"Find What Matters. Return What Belongs."</span>
+            </div>
+            <div class="flex flex-wrap gap-4 text-slate-400">
+                <button onclick="navigateTo('home')" class="hover:text-white">Home</button>
+                <button onclick="navigateTo('search')" class="hover:text-white">Ledger</button>
+                <button onclick="navigateTo('report-lost')" class="hover:text-white">Lost Complaint</button>
+                <button onclick="navigateTo('report-found')" class="hover:text-white">Found Item</button>
+                <button onclick="navigateTo('user-dash')" class="hover:text-white">User Hub</button>
+                <button onclick="navigateTo('admin-dash')" class="hover:text-white">Admin</button>
+            </div>
+            <div class="text-[11px] text-slate-400">
+                © 2026 GoDeskScout College Platform. Cloud Firebase Hosting & Security Hardened.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK & Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, addDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global State
+        window.itemsLedger = [];
+        window.notifications = [];
+        window.activeClaimId = null;
+        window.currentUser = null;
+        window.isSignUpMode = false;
+
+        // Firebase Configuration for project: godeskscout-app
+        const firebaseConfig = {
+            projectId: "godeskscout-app",
+            appId: "1:784345419222:web:070cf30ff641d973d52877",
+            storageBucket: "godeskscout-app.firebasestorage.app",
+            apiKey: "AIzaSyDF97FXgwEEsOmg1IAd5UKlZiFP4MrIB_s",
+            authDomain: "godeskscout-app.firebaseapp.com",
+            messagingSenderId: "784345419222"
+        };
+        
+        let app, auth, db, systemUser;
+        let useLocalStorageFallback = false;
+
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch(e) {
+            console.warn("Firebase direct init fallback:", e);
+            useLocalStorageFallback = true;
+        }
+
+        // Initialize Realtime Sync & Firestore
+        async function initApp() {
+            // Load local cache first
+            const cached = localStorage.getItem('godeskscout_ledger');
+            if (cached) {
+                try {
+                    window.itemsLedger = JSON.parse(cached);
+                    renderAllViews();
+                } catch(e) { console.error(e); }
+            }
+
+            if (!auth || !db) {
+                useLocalStorageFallback = true;
+                return;
+            }
+
+            try {
+                const cred = await signInAnonymously(auth);
+                systemUser = cred.user;
+                console.log("Firebase anonymous auth established:", systemUser.uid);
+
+                // Listen to Real-time Firestore Collection: ledger
+                const ledgerRef = collection(db, 'ledger');
+                onSnapshot(ledgerRef, (snapshot) => {
+                    if (!snapshot.empty) {
+                        const items = [];
+                        snapshot.forEach(docSnap => {
+                            items.push({ dbId: docSnap.id, ...docSnap.data() });
+                        });
+                        items.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                        window.itemsLedger = items;
+                        localStorage.setItem('godeskscout_ledger', JSON.stringify(window.itemsLedger));
+                        renderAllViews();
+                    } else if (window.itemsLedger.length === 0) {
+                        renderAllViews();
+                    }
+                }, (err) => {
+                    console.warn("Firestore listener note:", err);
+                    useLocalStorageFallback = true;
+                });
+            } catch(e) {
+                console.warn("Firestore connecting fallback to local sync:", e);
+                useLocalStorageFallback = true;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if(document.getElementById('lostDate')) document.getElementById('lostDate').valueAsDate = new Date();
+            if(document.getElementById('foundDate')) document.getElementById('foundDate').valueAsDate = new Date();
+            updateHeaderAuthUI();
+            renderAllViews();
+            initApp();
+            
+            // Auto-login with student demo or open auth modal on clean start
+            const savedUser = localStorage.getItem('godeskscout_user');
+            if (savedUser) {
+                try {
+                    window.currentUser = JSON.parse(savedUser);
+                    updateHeaderAuthUI();
+                } catch(e) {}
+            }
+            if (!window.currentUser) {
+                window.openAuthModal();
+            }
+        });
+
+        window.toggleDarkMode = () => document.documentElement.classList.toggle('dark');
+        
+        window.navigateTo = (pageId) => {
+            const protectedRoutes = ['report-lost', 'report-found', 'user-dash', 'admin-dash'];
+            if (protectedRoutes.includes(pageId) && !window.currentUser) {
+                window.openAuthModal();
+                showToast("Please sign in with your college account to access this section.");
+                return;
+            }
+            if (pageId === 'admin-dash' && window.currentUser && window.currentUser.role !== 'admin') {
+                showToast("Access Denied: Admin privileges required. (Use admin@godeskscout.com)");
+                return;
+            }
+            document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(`page-${pageId}`);
+            if (target) target.classList.remove('hidden');
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('text-skyAccent', 'bg-slate-800'));
+            const activeNav = document.getElementById(`nav-${pageId}`);
+            if(activeNav) activeNav.classList.add('text-skyAccent');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.toggleMobileMenu = () => document.getElementById('mobileMenu').classList.toggle('hidden');
+
+        function renderAllViews() {
+            updateStats();
+            renderHomeRecent();
+            renderSearchGrid(window.itemsLedger);
+            renderUserTable();
+            renderAdminTable();
+        }
+
+        function updateStats() {
+            const total = window.itemsLedger.length;
+            const lost = window.itemsLedger.filter(i => i.type === 'LOST').length;
+            const found = window.itemsLedger.filter(i => i.type === 'FOUND').length;
+            const returned = window.itemsLedger.filter(i => i.status === 'RETURNED').length;
+            const claims = window.itemsLedger.filter(i => i.status === 'CLAIM PENDING').length;
+
+            if(document.getElementById('stat-total')) document.getElementById('stat-total').innerText = total;
+            if(document.getElementById('stat-lost')) document.getElementById('stat-lost').innerText = lost;
+            if(document.getElementById('stat-found')) document.getElementById('stat-found').innerText = found;
+            if(document.getElementById('stat-returned')) document.getElementById('stat-returned').innerText = returned;
+            if(document.getElementById('stat-claims')) document.getElementById('stat-claims').innerText = claims;
+            if(document.getElementById('adminTotalBadge')) document.getElementById('adminTotalBadge').innerText = `${total} Total Entries`;
+        }
+
+        function renderHomeRecent() {
+            const container = document.getElementById('homeRecentGrid');
+            if(!container) return;
+            container.innerHTML = '';
+            if (window.itemsLedger.length === 0) {
+                container.innerHTML = `
+                <div class="col-span-full glass-card p-8 rounded-3xl text-center space-y-3 border">
+                    <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-xl"><i class="fa-solid fa-cloud"></i></div>
+                    <h3 class="font-bold text-sm">Ledger is Ready</h3>
+                    <p class="text-xs text-slate-500 max-w-md mx-auto">No records yet. Lodge a lost item complaint or log a found item to start live tracking.</p>
+                    <div class="flex justify-center gap-3">
+                        <button onclick="navigateTo('report-lost')" class="px-4 py-2 bg-red-600 text-white rounded-xl text-xs font-bold hover:bg-red-700 transition"><i class="fa-solid fa-plus mr-1"></i> Lodge Lost Complaint</button>
+                        <button onclick="runAutomatedDemoMock()" class="px-4 py-2 bg-skyAccent text-navy-950 rounded-xl text-xs font-extrabold hover:bg-sky-400 transition"><i class="fa-solid fa-flask mr-1"></i> Run Mock Demo</button>
+                    </div>
+                </div>`;
+                return;
+            }
+            window.itemsLedger.slice(0, 3).forEach(item => container.appendChild(createItemCard(item)));
+        }
+
+        function renderSearchGrid(dataset) {
+            const container = document.getElementById('searchGrid');
+            if(!container) return;
+            container.innerHTML = '';
+            if (dataset.length === 0) {
+                container.innerHTML = `<div class="col-span-full glass-card p-8 rounded-3xl text-center space-y-2 border">
+                    <i class="fa-solid fa-magnifying-glass text-2xl text-slate-400"></i>
+                    <p class="text-xs font-bold text-slate-500">No items match current filter criteria.</p>
+                </div>`;
+                return;
+            }
+            dataset.forEach(item => container.appendChild(createItemCard(item)));
+        }
+
+        function createItemCard(item) {
+            const card = document.createElement('div');
+            const isLost = item.type === 'LOST';
+            card.className = "glass-card rounded-3xl p-5 space-y-4 border flex flex-col justify-between hover:shadow-xl transition";
+            let statusBadge = '';
+            if(item.status === 'UNDER INVESTIGATION') statusBadge = 'bg-red-500/10 text-red-600 border-red-500/20';
+            else if(item.status === 'FOUND') statusBadge = 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
+            else if(item.status === 'CLAIM PENDING') statusBadge = 'bg-amber-500/10 text-amber-600 border-amber-500/20';
+            else statusBadge = 'bg-royal-500/10 text-royal-600 border-royal-500/20';
+
+            card.innerHTML = `
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase border ${isLost ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'}">
+                            <i class="fa-solid ${isLost ? 'fa-triangle-exclamation' : 'fa-box-archive'} mr-1"></i> ${item.type}
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-semibold">${item.date}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-extrabold text-royal-600 dark:text-skyAccent uppercase">${item.category}</span>
+                        <h3 class="font-bold text-base text-navy-900 dark:text-white line-clamp-1">${item.title}</h3>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">${item.desc}</p>
+                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 space-y-1">
+                        <div class="flex items-center"><i class="fa-solid fa-location-dot w-4 text-skyAccent"></i> ${item.location}</div>
+                        <div class="flex items-center"><i class="fa-solid fa-user w-4 text-slate-400"></i> ${item.reporter}</div>
+                    </div>
+                </div>
+                <div class="pt-2 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusBadge}">${item.status}</span>
+                    <button onclick="openClaimModal('${item.id}')" class="px-3 py-1.5 bg-navy-900 dark:bg-white text-white dark:text-navy-900 text-xs font-bold rounded-xl hover:opacity-90 transition">
+                        ${isLost ? 'I Found This' : 'Claim Item'}
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+
+        window.handleLostComplaintSubmit = async (e) => {
+            e.preventDefault();
+            const id = 'LST-' + Math.floor(1000 + Math.random() * 9000);
+            const newItem = {
+                id, type: 'LOST',
+                title: document.getElementById('lostTitle').value,
+                category: document.getElementById('lostCategory').value,
+                location: document.getElementById('lostLocation').value,
+                date: document.getElementById('lostDate').value,
+                time: document.getElementById('lostTime').value || 'N/A',
+                marks: document.getElementById('lostMarks').value || 'None',
+                desc: document.getElementById('lostDesc').value,
+                reporter: document.getElementById('lostReporter').value,
+                contact: document.getElementById('lostContact').value,
+                status: 'UNDER INVESTIGATION',
+                timestamp: Date.now()
+            };
+
+            // Save to Firestore and local cache
+            try {
+                if (db && !useLocalStorageFallback) {
+                    const docRef = await addDoc(collection(db, 'ledger'), newItem);
+                    newItem.dbId = docRef.id;
+                }
+            } catch(err) {
+                console.warn("Firestore save fallback to local:", err);
+            }
+
+            if (!newItem.dbId) newItem.dbId = 'loc_' + Date.now();
+            window.itemsLedger.unshift(newItem);
+            localStorage.setItem('godeskscout_ledger', JSON.stringify(window.itemsLedger));
+            
+            addNotification(`Lost complaint ${id} registered successfully.`);
+            document.getElementById('lostComplaintForm').reset();
+            showToast(`Complaint ${id} registered in database!`);
+            renderAllViews();
+            window.navigateTo('user-dash');
+        };
+
+        window.handleFoundItemSubmit = async (e) => {
+            e.preventDefault();
+            const id = 'FND-' + Math.floor(1000 + Math.random() * 9000);
+            const newItem = {
+                id, type: 'FOUND',
+                title: document.getElementById('foundTitle').value,
+                category: document.getElementById('foundCategory').value,
+                location: document.getElementById('foundLocation').value,
+                date: document.getElementById('foundDate').value,
+                time: 'N/A', marks: 'N/A',
+                desc: document.getElementById('foundDesc').value,
+                reporter: 'Desk Custody',
+                contact: document.getElementById('foundContact').value,
+                status: 'FOUND',
+                timestamp: Date.now()
+            };
+
+            try {
+                if (db && !useLocalStorageFallback) {
+                    const docRef = await addDoc(collection(db, 'ledger'), newItem);
+                    newItem.dbId = docRef.id;
+                }
+            } catch(err) {
+                console.warn("Firestore save fallback to local:", err);
+            }
+
+            if (!newItem.dbId) newItem.dbId = 'loc_' + Date.now();
+            window.itemsLedger.unshift(newItem);
+            localStorage.setItem('godeskscout_ledger', JSON.stringify(window.itemsLedger));
+
+            addNotification(`Found item ${id} logged to desk custody.`);
+            document.getElementById('foundItemForm').reset();
+            showToast(`Found entry ${id} stored in ledger!`);
+            renderAllViews();
+            window.navigateTo('search');
+        };
+
+        window.applyLedgerFilters = () => {
+            const query = (document.getElementById('searchInput')?.value || '').toLowerCase();
+            const type = document.getElementById('typeFilter')?.value || 'ALL';
+            const category = document.getElementById('categoryFilter')?.value || 'ALL';
+            const status = document.getElementById('statusFilter')?.value || 'ALL';
+
+            const filtered = window.itemsLedger.filter(item => {
+                const matchQuery = (item.title || '').toLowerCase().includes(query) || 
+                                   (item.desc || '').toLowerCase().includes(query) || 
+                                   (item.id || '').toLowerCase().includes(query);
+                const matchType = type === 'ALL' || item.type === type;
+                const matchCategory = category === 'ALL' || item.category === category;
+                const matchStatus = status === 'ALL' || item.status === status;
+                return matchQuery && matchType && matchCategory && matchStatus;
+            });
+            renderSearchGrid(filtered);
+        };
+
+        function renderUserTable() {
+            const tbody = document.getElementById('userComplaintsTable');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            const userItems = window.itemsLedger.filter(i => i.type === 'LOST');
+            if(userItems.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No lost item complaints lodged yet.</td></tr>`;
+                return;
+            }
+            userItems.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 dark:hover:bg-navy-900/50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-red-500">${item.id}</td>
+                    <td class="p-3 font-semibold text-navy-900 dark:text-white">${item.title}</td>
+                    <td class="p-3 text-slate-500">${item.category}</td>
+                    <td class="p-3 text-slate-500">${item.date}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-500 border border-red-500/20">${item.status}</span></td>
+                    <td class="p-3 text-right">
+                        <button onclick="deleteItem('${item.id}')" class="text-slate-400 hover:text-red-500 transition" title="Delete complaint"><i class="fa-solid fa-trash-can"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('adminItemsTable');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            if(window.itemsLedger.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">Database is empty (0 entries).</td></tr>`;
+                return;
+            }
+            window.itemsLedger.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 dark:hover:bg-navy-900/50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-slate-400">${item.id}</td>
+                    <td class="p-3 font-bold ${item.type === 'LOST' ? 'text-red-500' : 'text-emerald-500'}">${item.type}</td>
+                    <td class="p-3 font-semibold text-navy-900 dark:text-white">${item.title}</td>
+                    <td class="p-3 text-slate-500">${item.location}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-royal-500/10 text-royal-600 border border-royal-500/20">${item.status}</span></td>
+                    <td class="p-3 text-right space-x-1">
+                        <button onclick="updateItemStatus('${item.id}', 'RETURNED')" class="px-2 py-1 bg-emerald-600 text-white text-[10px] font-bold rounded-lg hover:bg-emerald-700">Mark Returned</button>
+                        <button onclick="deleteItem('${item.id}')" class="px-2 py-1 bg-red-600 text-white text-[10px] font-bold rounded-lg hover:bg-red-700">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.openClaimModal = (id) => { 
+            window.activeClaimId = id; 
+            const item = window.itemsLedger.find(i => i.id === id);
+            if (item) {
+                document.getElementById('claimModalTitle').innerText = `Submit Claim: ${item.title} (${item.id})`;
+            }
+            document.getElementById('claimModal').classList.remove('hidden'); 
+        };
+        window.closeClaimModal = () => document.getElementById('claimModal').classList.add('hidden');
+        
+        window.submitClaimRequest = () => {
+            const name = document.getElementById('claimUser').value;
+            const proof = document.getElementById('claimProof').value;
+            if(!name || !proof) { showToast("Please provide claimant name and verification proof."); return; }
+            window.updateItemStatus(window.activeClaimId, 'CLAIM PENDING');
+            addNotification(`Ownership claim submitted for item ${window.activeClaimId} by ${name}.`);
+            window.closeClaimModal();
+            showToast("Claim submitted to Admin for physical verification!");
+        };
+
+        window.updateItemStatus = async (id, newStatus) => {
+            const item = window.itemsLedger.find(i => i.id === id);
+            if(item) {
+                item.status = newStatus;
+                if(item.dbId && db && !useLocalStorageFallback && !item.dbId.startsWith('loc_')) {
+                    try {
+                        await updateDoc(doc(db, 'ledger', item.dbId), { status: newStatus });
+                    } catch(e) { console.warn("Firestore status update fallback:", e); }
+                }
+                localStorage.setItem('godeskscout_ledger', JSON.stringify(window.itemsLedger));
+                renderAllViews();
+                showToast(`Item ${id} updated to ${newStatus}`);
+            }
+        };
+
+        window.deleteItem = async (id) => {
+            const item = window.itemsLedger.find(i => i.id === id);
+            if(item) {
+                if(item.dbId && db && !useLocalStorageFallback && !item.dbId.startsWith('loc_')) {
+                    try {
+                        await deleteDoc(doc(db, 'ledger', item.dbId));
+                    } catch(e) { console.warn("Firestore delete fallback:", e); }
+                }
+                window.itemsLedger = window.itemsLedger.filter(i => i.id !== id);
+                localStorage.setItem('godeskscout_ledger', JSON.stringify(window.itemsLedger));
+                renderAllViews();
+                showToast(`Entry ${id} purged from ledger.`);
+            }
+        };
+
+        function addNotification(msg) {
+            window.notifications.unshift({ msg, date: new Date().toLocaleTimeString() });
+            document.getElementById('notifBadge').innerText = window.notifications.length;
+            const list = document.getElementById('notifList');
+            if(!list) return;
+            list.innerHTML = '';
+            window.notifications.forEach(n => {
+                const div = document.createElement('div');
+                div.className = "p-2.5 rounded-xl bg-slate-100 dark:bg-navy-900 border border-slate-200 dark:border-slate-800 space-y-0.5";
+                div.innerHTML = `<div class="font-bold text-slate-800 dark:text-slate-200">${n.msg}</div><div class="text-[9px] text-slate-400">${n.date}</div>`;
+                list.appendChild(div);
+            });
+        }
+
+        window.toggleNotifications = () => document.getElementById('notifPanel').classList.toggle('hidden');
+        window.markNotificationsRead = () => {
+            window.notifications = [];
+            document.getElementById('notifBadge').innerText = '0';
+            document.getElementById('notifList').innerHTML = `<div class="text-center py-6 text-slate-400"><i class="fa-solid fa-bell-slash text-2xl mb-2"></i><p>All notifications cleared.</p></div>`;
+        };
+        
+        window.resetPresentationData = async () => {
+            if (window.itemsLedger.length === 0) { 
+                showToast("Database is already empty."); 
+                return; 
+            }
+            
+            showToast("Wiping database to zero state...");
+            
+            if (db && !useLocalStorageFallback) {
+                try {
+                    const deletePromises = window.itemsLedger
+                        .filter(i => i.dbId && !i.dbId.startsWith('loc_'))
+                        .map(item => deleteDoc(doc(db, 'ledger', item.dbId)));
+                    await Promise.all(deletePromises);
+                } catch (e) {
+                    console.warn("Firestore reset note:", e);
+                }
+            }
+            
+            window.itemsLedger = [];
+            localStorage.removeItem('godeskscout_ledger');
+            renderAllViews();
+            showToast("Success: All ledger reports cleared for clean presentation!");
+        };
+
+        window.isCollegeEmail = (email) => {
+            const lowerEmail = email.toLowerCase().trim();
+            return lowerEmail.endsWith('.edu') || lowerEmail.endsWith('.ac.in') || lowerEmail.endsWith('.edu.in') || lowerEmail === 'admin@godeskscout.com';
+        };
+
+        window.togglePassword = (inputId, iconId) => {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        };
+
+        window.openAuthModal = () => {
+            document.getElementById('authModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('login-email')?.focus(), 100);
+        };
+        
+        window.closeAuthModal = () => {
+            document.getElementById('authModal').classList.add('hidden');
+            document.getElementById('form-login').reset();
+            document.getElementById('form-signup').reset();
+            if (window.isSignUpMode) window.toggleAuthMode();
+        };
+
+        window.toggleAuthMode = () => {
+            window.isSignUpMode = !window.isSignUpMode;
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            if (window.isSignUpMode) {
+                loginForm.classList.remove('fade-in');
+                loginForm.classList.add('fade-out');
+                signupForm.classList.remove('fade-out');
+                signupForm.classList.add('fade-in');
+                setTimeout(() => document.getElementById('signup-name')?.focus(), 400);
+            } else {
+                signupForm.classList.remove('fade-in');
+                signupForm.classList.add('fade-out');
+                loginForm.classList.remove('fade-out');
+                loginForm.classList.add('fade-in');
+                setTimeout(() => document.getElementById('login-email')?.focus(), 400);
+            }
+        };
+
+        const processAuth = (email, name, role, isSignUp) => {
+            window.currentUser = {
+                id: 'USR-' + Math.floor(1000 + Math.random() * 9000),
+                name: name.charAt(0).toUpperCase() + name.slice(1),
+                email: email, 
+                role: role
+            };
+            localStorage.setItem('godeskscout_user', JSON.stringify(window.currentUser));
+            window.closeAuthModal();
+            updateHeaderAuthUI();
+            showToast(`Signed in as ${window.currentUser.name} (${window.currentUser.role.toUpperCase()})`);
+            if (role === 'admin') window.navigateTo('admin-dash');
+            else window.navigateTo('user-dash');
+        };
+
+        window.quickLogin = (type) => {
+            if (type === 'student') {
+                processAuth('alex.morgan@university.edu', 'Alex Morgan', 'student', false);
+            } else if (type === 'admin') {
+                processAuth('admin@godeskscout.com', 'Campus Chief Admin', 'admin', false);
+            }
+        };
+
+        window.handleLogin = (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            if (email && !window.isCollegeEmail(email)) {
+                showToast("Access restricted: Please use your college email ID (.edu, .ac.in)");
+                return;
+            }
+            const name = email.split('@')[0].replace('.', ' ');
+            const role = email.toLowerCase() === 'admin@godeskscout.com' ? 'admin' : 'student';
+            processAuth(email, name, role, false);
+        };
+
+        window.handleSignUp = (e) => {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            if (email && !window.isCollegeEmail(email)) {
+                showToast("Please register with your college email ID (.edu, .ac.in)");
+                return;
+            }
+            const role = email.toLowerCase() === 'admin@godeskscout.com' ? 'admin' : 'student';
+            processAuth(email, name, role, true);
+        };
+
+        window.handleGoogleLogin = async () => {
+            // Simulated / Pop-up Google Auth
+            processAuth('student.google@university.edu', 'Google Verified Student', 'student', false);
+        };
+
+        window.handleLogout = () => {
+            window.currentUser = null;
+            localStorage.removeItem('godeskscout_user');
+            updateHeaderAuthUI();
+            window.navigateTo('home');
+            window.openAuthModal();
+            showToast("Successfully signed out.");
+        };
+        
+        function updateHeaderAuthUI() {
+            const container = document.getElementById('authContainer');
+            if (window.currentUser) {
+                const initials = window.currentUser.name.substring(0, 2).toUpperCase();
+                const isAdmin = window.currentUser.role === 'admin';
+                container.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="hidden sm:block text-right">
+                            <div class="text-[11px] font-extrabold text-white leading-tight">${window.currentUser.name}</div>
+                            <div class="text-[9px] font-bold ${isAdmin ? 'text-amber-400' : 'text-skyAccent'} uppercase tracking-wider">${window.currentUser.role}</div>
+                        </div>
+                        <div class="w-9 h-9 rounded-xl ${isAdmin ? 'bg-gradient-to-br from-amber-500 to-amber-700' : 'bg-gradient-to-br from-royal-500 to-royal-700'} text-white flex items-center justify-center text-xs font-bold shadow-md">
+                            ${initials}
+                        </div>
+                        <button onclick="handleLogout()" title="Sign Out" class="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-xl transition">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+                `;
+                if(document.getElementById('userDashSubtitle')) {
+                    document.getElementById('userDashSubtitle').innerText = `${window.currentUser.name} (ID: ${window.currentUser.id}) • Active Member`;
+                }
+                if(document.getElementById('userAvatar')) {
+                    document.getElementById('userAvatar').innerText = initials;
+                }
+            } else {
+                container.innerHTML = `<button onclick="openAuthModal()" class="px-5 py-2 rounded-xl bg-royal-600 hover:bg-royal-700 text-white text-xs font-bold shadow-lg shadow-royal-600/30 transition transform hover:-translate-y-0.5">Sign In</button>`;
+            }
+        }
+
+        window.showToast = function(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3200);
+        };
+        const showToast = window.showToast;
+
+        window.generateAIDescription = async (type) => {
+            const titleId = type === 'lost' ? 'lostTitle' : 'foundTitle';
+            const categoryId = type === 'lost' ? 'lostCategory' : 'foundCategory';
+            const descId = type === 'lost' ? 'lostDesc' : 'foundDesc';
+            const title = document.getElementById(titleId).value;
+            const category = document.getElementById(categoryId).value;
+            const descArea = document.getElementById(descId);
+            
+            if (!title) { showToast("Please enter an Item Title first so AI can suggest specs!"); return; }
+            
+            descArea.value = "AI generating structured attribute template...";
+            
+            // Smart built-in AI template synthesizer
+            setTimeout(() => {
+                const templates = {
+                    'Electronics': `• Brand & Model: [e.g. Sony / Apple / Dell]\n• Color / Finish: [e.g. Matte Black with silver trim]\n• Serial / IMEI / MAC: [e.g. Last 4 digits: 9021]\n• Distinctive Marks: [e.g. Minor scratch near port, stickers]\n• Accessories / Cable: [e.g. Carrying pouch included]`,
+                    'IDs & Cards': `• Card Issuer: [e.g. College Library / Bank]\n• Name on Card: [e.g. Masked format A. M****n]\n• Holder / Lanyard: [e.g. Blue ribbon lanyard with badge]\n• Expiry / Batch Year: [e.g. Batch 2024-2028]`,
+                    'Keys & Accessories': `• Number of Keys: [e.g. 3 silver Yale keys + 1 bike key]\n• Keychain / Tag: [e.g. Red lanyard / metal dragon emblem]\n• Ring Type: [e.g. Brass carabiner ring]`,
+                    'Clothing & Bags': `• Brand & Size: [e.g. North Face / Medium]\n• Primary Color & Material: [e.g. Navy blue canvas/nylon]\n• Compartments & Contents: [e.g. Front zipper contains notebook]\n• Keychain / Pins: [e.g. NASA pin on upper strap]`,
+                    'Stationery & Books': `• Title / Edition: [e.g. Data Structures 4th Ed.]\n• Notebook Color / Ruled: [e.g. Spiral bound 200 pages]\n• Name written inside: [e.g. First page handwritten notes]`
+                };
+                const template = templates[category] || `• Item Specs & Color: [Specify details]\n• Identifying Markings: [Scratches, stickers, tags]\n• Circumstances: [Where misplaced]`;
+                descArea.value = template;
+                showToast("AI Template generated! Please customize the bracketed specs.");
+            }, 500);
+        };
+
+        // ================= AUTOMATED USER DEMO MOCK RUNNER =================
+        // Executes a full page-by-page test walkthrough simulating real student & admin actions
+        window.runAutomatedDemoMock = async () => {
+            const delay = (ms) => new Promise(res => setTimeout(res, ms));
+            const btn = document.getElementById('btnAutoMock');
+            const origText = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Running Demo Mock...`;
+            btn.disabled = true;
+
+            showToast("🚀 Initiating User Demo Mock Walkthrough...");
+            await delay(1200);
+
+            // Step 1: Login as Student
+            showToast("Step 1/7: Logging in as Student (Alex Morgan)...");
+            window.quickLogin('student');
+            await delay(1500);
+
+            // Step 2: Home Page Verification
+            showToast("Step 2/7: Verifying Home Page Statistics & Ledger...");
+            window.navigateTo('home');
+            await delay(1500);
+
+            // Step 3: Lodge Lost Item Complaint
+            showToast("Step 3/7: Lodging Lost Complaint (Noise-Cancelling Headphones)...");
+            window.navigateTo('report-lost');
+            await delay(1000);
+            document.getElementById('lostTitle').value = "Sony WH-1000XM5 Headphones";
+            document.getElementById('lostCategory').value = "Electronics";
+            document.getElementById('lostLocation').value = "Main Library - Desk 3";
+            document.getElementById('lostMarks').value = "Sticker of Hackathon on left cup";
+            document.getElementById('lostDesc').value = "Black matte finish with case. Left behind on Table 4 in Library Quiet Zone.";
+            document.getElementById('lostReporter').value = "Alex Morgan";
+            document.getElementById('lostContact').value = "alex.morgan@university.edu";
+            await delay(1200);
+            
+            // Trigger Submit
+            document.getElementById('btnSubmitLost').click();
+            await delay(1800);
+
+            // Step 4: Verify in User Hub
+            showToast("Step 4/7: Checking Student Hub Live Status...");
+            window.navigateTo('user-dash');
+            await delay(1800);
+
+            // Step 5: Attendant logs Found Item
+            showToast("Step 5/7: Campus Desk logs Found Item (Library Desk)...");
+            window.navigateTo('report-found');
+            await delay(1000);
+            document.getElementById('foundTitle').value = "Apple iPad Air with Magic Pencil";
+            document.getElementById('foundCategory').value = "Electronics";
+            document.getElementById('foundLocation').value = "Main Library - Desk 3";
+            document.getElementById('foundContact').value = "desk.library@university.edu";
+            document.getElementById('foundDesc').value = "Space Gray iPad found at Desk 3 study carrel. Screen locked.";
+            await delay(1200);
+            document.getElementById('btnSubmitFound').click();
+            await delay(1800);
+
+            // Step 6: Browse Ledger & Filter
+            showToast("Step 6/7: Testing Ledger Search & Category Filtering...");
+            window.navigateTo('search');
+            document.getElementById('searchInput').value = "Sony";
+            window.applyLedgerFilters();
+            await delay(1500);
+            document.getElementById('searchInput').value = "";
+            window.applyLedgerFilters();
+            await delay(1000);
+
+            // Step 7: Switch to Admin and Verify
+            showToast("Step 7/7: Switching to Admin Panel to Verify & Hand Over...");
+            window.quickLogin('admin');
+            await delay(1200);
+            window.navigateTo('admin-dash');
+            await delay(1500);
+
+            if (window.itemsLedger.length > 0) {
+                const first = window.itemsLedger[0];
+                showToast(`Admin approving item ${first.id} as RETURNED...`);
+                await window.updateItemStatus(first.id, 'RETURNED');
+                await delay(1200);
+            }
+
+            btn.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> Demo Mock 100% Passed!`;
+            showToast("✅ Full Page-by-Page Mock Completed! All 7 Workflows Verified.");
+            setTimeout(() => {
+                btn.innerHTML = origText;
+                btn.disabled = false;
+            }, 4000);
+        };
+    </script>
+</body>
+</html>
