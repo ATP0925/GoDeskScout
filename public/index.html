@@ -296,6 +296,54 @@
                 </div>
             </div>
 
+            <!-- Campus Community & Social Network Showcase -->
+            <div class="glass-card p-6 sm:p-8 rounded-3xl border border-skyAccent/30 bg-gradient-to-br from-white via-navy-50/50 to-skyAccent/5 dark:from-navy-900 dark:via-navy-900/80 dark:to-navy-800 space-y-6">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div>
+                        <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase bg-royal-500/10 text-royal-600 dark:text-skyAccent border border-royal-500/20">
+                            <i class="fa-solid fa-users mr-1"></i> Campus Community Network
+                        </span>
+                        <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight mt-2 text-navy-900 dark:text-white">
+                            Connecting Campus Like a Community Social Network
+                        </h2>
+                        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">
+                            Jab college me kisi ka kuch lost ya found hota hai, GoDeskScout sabhi students, professors, aur desk staff ko ek social network ki tarah jodta hai. Spotting tips share karein, alerts boost karein, aur college culture ko strong banayein!
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="navigateTo('search')" class="px-4 py-2.5 rounded-xl bg-royal-600 hover:bg-royal-700 text-white font-bold text-xs shadow-md transition">
+                            <i class="fa-solid fa-rss mr-1.5"></i> Explore Live Campus Feed
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                    <div class="p-4 rounded-2xl bg-white/60 dark:bg-navy-950/60 border border-slate-200 dark:border-slate-800 space-y-2">
+                        <div class="w-9 h-9 rounded-xl bg-pink-500/10 text-pink-500 flex items-center justify-center font-bold text-sm">
+                            <i class="fa-solid fa-heart"></i>
+                        </div>
+                        <h4 class="font-bold text-xs">Community Boosts & Sightings</h4>
+                        <p class="text-[11px] text-slate-500 leading-relaxed">Students alert ko boost kar sakte hain taaki urgent items batch groups aur feeds me sabse upar dikhein.</p>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-white/60 dark:bg-navy-950/60 border border-slate-200 dark:border-slate-800 space-y-2">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold text-sm">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </div>
+                        <h4 class="font-bold text-xs">1-Click College Batch Share</h4>
+                        <p class="text-[11px] text-slate-500 leading-relaxed">Ek click me item details WhatsApp aur Telegram groups me share hoti hain with direct recovery links.</p>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-white/60 dark:bg-navy-950/60 border border-slate-200 dark:border-slate-800 space-y-2">
+                        <div class="w-9 h-9 rounded-xl bg-skyAccent/10 text-skyAccent flex items-center justify-center font-bold text-sm">
+                            <i class="fa-solid fa-comments"></i>
+                        </div>
+                        <h4 class="font-bold text-xs">Crowdsourced Sighting Tips</h4>
+                        <p class="text-[11px] text-slate-500 leading-relaxed">Classmates location sighting updates chhod sakte hain jaise: "11:30 AM Library Desk 3 ke paas dekha gaya tha".</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Recent Ledger Items -->
             <div class="space-y-4">
                 <div class="flex items-center justify-between">
@@ -660,6 +708,38 @@
             <div class="flex space-x-2 pt-2">
                 <button onclick="closeClaimModal()" class="w-1/2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
                 <button onclick="submitClaimRequest()" id="btnSubmitClaimModal" class="w-1/2 py-2.5 rounded-xl bg-royal-600 hover:bg-royal-700 text-white text-xs font-bold shadow">Submit Verification</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Campus Community Sighting Tip -->
+    <div id="sightingModal" class="fixed inset-0 z-50 bg-navy-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="glass-card max-w-lg w-full rounded-3xl p-6 space-y-4 border shadow-2xl relative">
+            <button onclick="closeSightingModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div>
+                <span class="px-2.5 py-1 bg-skyAccent/10 text-skyAccent rounded-full text-[10px] font-extrabold uppercase tracking-wider">
+                    <i class="fa-solid fa-eye mr-1"></i> Community Sighting Tip
+                </span>
+                <h3 id="sightingModalTitle" class="text-lg font-extrabold mt-1">Report Sighting Tip</h3>
+                <p class="text-xs text-slate-500">Seen this item around campus? Share a quick spotting location to help your classmate!</p>
+            </div>
+
+            <!-- Existing tips list -->
+            <div id="sightingTipsList" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar"></div>
+
+            <div class="space-y-3 text-xs pt-1">
+                <div>
+                    <label class="block font-bold text-slate-500 mb-1">Your Sighting Tip / Spotting Location *</label>
+                    <textarea id="sightingTipInput" rows="3" placeholder="e.g. Saw this blue bag on 2nd floor Physics lab bench around 11:30 AM today..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-navy-900 outline-none"></textarea>
+                </div>
+            </div>
+
+            <div class="flex space-x-2 pt-1">
+                <button onclick="closeSightingModal()" class="w-1/2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">Close</button>
+                <button onclick="submitSightingTip()" class="w-1/2 py-2.5 rounded-xl bg-skyAccent hover:bg-sky-400 text-navy-950 text-xs font-extrabold shadow">Post Sighting Tip</button>
             </div>
         </div>
     </div>
@@ -1165,6 +1245,9 @@
             else if(item.status === 'CLAIM PENDING') statusBadge = 'bg-amber-500/10 text-amber-600 border-amber-500/20';
             else statusBadge = 'bg-royal-500/10 text-royal-600 border-royal-500/20';
 
+            const boosts = item.boosts || 0;
+            const sightingsCount = (item.sightings && item.sightings.length) || 0;
+
             card.innerHTML = `
                 <div class="space-y-3">
                     <div class="flex items-center justify-between">
@@ -1183,11 +1266,39 @@
                         <div class="flex items-center"><i class="fa-solid fa-user w-4 text-slate-400"></i> ${item.reporter}</div>
                     </div>
                 </div>
-                <div class="pt-2 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
-                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusBadge}">${item.status}</span>
-                    <button onclick="openClaimModal('${item.id}')" class="px-3 py-1.5 bg-navy-900 dark:bg-white text-white dark:text-navy-900 text-xs font-bold rounded-xl hover:opacity-90 transition">
-                        ${isLost ? 'I Found This' : 'Claim Item'}
-                    </button>
+                
+                <!-- Social Community Interaction Strip -->
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <!-- Community Boost Button -->
+                            <button onclick="boostItem('${item.id}', event)" title="Boost alert visibility across campus" class="px-2.5 py-1 rounded-lg bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 text-[11px] font-bold transition flex items-center gap-1">
+                                <i class="fa-solid fa-heart text-pink-500 text-[10px]"></i>
+                                <span>${boosts > 0 ? boosts : 'Boost'}</span>
+                            </button>
+
+                            <!-- Sighting Tip Button -->
+                            <button onclick="openSightingModal('${item.id}', event)" title="Report where you spotted this item" class="px-2.5 py-1 rounded-lg bg-skyAccent/10 hover:bg-skyAccent/20 text-skyAccent text-[11px] font-bold transition flex items-center gap-1">
+                                <i class="fa-regular fa-comment-dots text-[10px]"></i>
+                                <span>${sightingsCount > 0 ? sightingsCount + ' Sighted' : 'Spotted?'}</span>
+                            </button>
+
+                            <!-- 1-Click WhatsApp College Batch Share -->
+                            <button onclick="shareItemToSocial('${item.id}', '${encodeURIComponent(item.title)}', '${encodeURIComponent(item.location)}', event)" title="Share to WhatsApp / College Groups" class="p-1 px-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold transition flex items-center gap-1">
+                                <i class="fa-brands fa-whatsapp text-xs"></i>
+                            </button>
+                        </div>
+
+                        <!-- Action Button -->
+                        <button onclick="openClaimModal('${item.id}')" class="px-3 py-1.5 bg-navy-900 dark:bg-white text-white dark:text-navy-900 text-xs font-bold rounded-xl hover:opacity-90 transition shadow-sm">
+                            ${isLost ? 'I Found This' : 'Claim Item'}
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between text-[10px]">
+                        <span class="px-2 py-0.5 rounded-full font-bold border ${statusBadge}">${item.status}</span>
+                        <span class="text-slate-400">Ref: ${item.id}</span>
+                    </div>
                 </div>
             `;
             return card;
@@ -1338,6 +1449,77 @@
                 tbody.appendChild(tr);
             });
         }
+
+        // ================= SOCIAL COMMUNITY ENGAGEMENT (BOOST, SHARE, SIGHTING TIPS) =================
+        window.boostItem = (id, e) => {
+            if (e) e.stopPropagation();
+            const item = window.itemsLedger.find(i => i.id === id);
+            if (item) {
+                item.boosts = (item.boosts || 0) + 1;
+                localStorage.setItem('godeskscout_ledger', JSON.stringify(window.itemsLedger));
+                renderAllViews();
+                showToast(`❤️ Boosted ${item.title}! Item prioritized in campus community feed.`);
+            }
+        };
+
+        window.shareItemToSocial = (id, titleEscaped, locationEscaped, e) => {
+            if (e) e.stopPropagation();
+            const title = decodeURIComponent(titleEscaped);
+            const loc = decodeURIComponent(locationEscaped);
+            const shareText = `📢 Campus Lost & Found Alert: "${title}" at ${loc}.\nAgar kisi ko pata ho to GoDeskScout par claim karein ya sighting tip de:\nhttps://godeskscout-app.web.app`;
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(shareText).catch(() => {});
+            }
+            const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+            window.open(waUrl, '_blank');
+            showToast("College Group share link copied & opening WhatsApp!");
+        };
+
+        window.openSightingModal = (id, e) => {
+            if (e) e.stopPropagation();
+            window.activeSightingId = id;
+            const item = window.itemsLedger.find(i => i.id === id);
+            if (item) {
+                document.getElementById('sightingModalTitle').innerText = `Sighting Tip: ${item.title} (${item.id})`;
+                const list = document.getElementById('sightingTipsList');
+                list.innerHTML = '';
+                if (item.sightings && item.sightings.length > 0) {
+                    item.sightings.forEach(s => {
+                        const d = document.createElement('div');
+                        d.className = "p-2.5 rounded-xl bg-slate-100 dark:bg-navy-900 border border-slate-200 dark:border-slate-800 text-[11px] space-y-0.5";
+                        d.innerHTML = `<div class="font-bold text-navy-900 dark:text-white flex items-center justify-between"><span><i class="fa-solid fa-user-tag text-skyAccent mr-1"></i> ${s.user}</span> <span class="text-[9px] text-slate-400 font-normal">${s.time}</span></div><p class="text-slate-600 dark:text-slate-300">${s.tip}</p>`;
+                        list.appendChild(d);
+                    });
+                } else {
+                    list.innerHTML = `<div class="text-center py-4 text-slate-400 text-xs"><i class="fa-solid fa-binoculars text-lg mb-1 block"></i>No sighting tips posted yet. Be the first to share where you spotted it!</div>`;
+                }
+            }
+            document.getElementById('sightingModal').classList.remove('hidden');
+        };
+
+        window.closeSightingModal = () => document.getElementById('sightingModal').classList.add('hidden');
+
+        window.submitSightingTip = () => {
+            const tip = (document.getElementById('sightingTipInput')?.value || '').trim();
+            if (!tip) { showToast("Please write a sighting location or detail."); return; }
+            const item = window.itemsLedger.find(i => i.id === window.activeSightingId);
+            if (item) {
+                if (!item.sightings) item.sightings = [];
+                const user = window.currentUser ? window.currentUser.name : 'Campus Member';
+                item.sightings.unshift({ 
+                    user, 
+                    tip, 
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                });
+                localStorage.setItem('godeskscout_ledger', JSON.stringify(window.itemsLedger));
+                addNotification(`New sighting tip posted for item ${item.id}: "${tip}"`);
+                document.getElementById('sightingTipInput').value = '';
+                window.closeSightingModal();
+                renderAllViews();
+                showToast("Sighting tip posted to campus feed!");
+            }
+        };
 
         window.openClaimModal = (id) => { 
             window.activeClaimId = id; 

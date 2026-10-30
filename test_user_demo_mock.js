@@ -62,7 +62,14 @@ async function runTestSuite() {
     assert(htmlContent.includes('id="page-user-dash"'), "Page 5: Student Hub Dashboard View is present");
     assert(htmlContent.includes('id="page-admin-dash"'), "Page 6: Admin Control Center View is present");
 
-    // 5. Mock Logic and Security
+    // 5. Social Community Features Verification
+    console.log("\n🤝 Section 5: Campus Social Community Integration");
+    assert(htmlContent.includes('boostItem'), "Community Alert Boost (Likes/Upvotes) implemented");
+    assert(htmlContent.includes('shareItemToSocial'), "1-Click WhatsApp / College Batch Group Share implemented");
+    assert(htmlContent.includes('openSightingModal') && htmlContent.includes('submitSightingTip'), "Crowdsourced Campus Sighting Tips modal implemented");
+    assert(htmlContent.includes('Campus Community Network'), "Campus Social Network showcase section present on Home View");
+
+    // 6. Security and Deployment
     console.log("\n🔐 Section 5: Security Rules & Live Verification");
     assert(rulesContent.includes('service cloud.firestore'), "Firestore security service block defined");
     assert(rulesContent.includes('isValidLedgerItem'), "Ledger domain schema validator enforced");
